@@ -8,6 +8,9 @@ const requiredPaths = [
   'services/media-worker/package.json',
   'packages/shared/package.json',
   'packages/player-core/package.json',
+  'apps/web/Dockerfile.dev',
+  'apps/api/Dockerfile.dev',
+  'services/media-worker/Dockerfile.dev',
   'compose.yaml',
   'infra/reverse-proxy/Caddyfile',
 ]

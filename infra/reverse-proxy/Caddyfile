@@ -1,0 +1,14 @@
+:8080 {
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	handle /media/* {
+		reverse_proxy media-worker:3002
+	}
+
+	handle {
+		reverse_proxy web:5173
+	}
+}
+

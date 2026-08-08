@@ -1,0 +1,96 @@
+name: livetv
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    init: true
+    environment:
+      WEB_PORT: '5173'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:5173/').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    init: true
+    environment:
+      API_PORT: '3001'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3001/api/health').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  media-worker:
+    build:
+      context: .
+      dockerfile: services/media-worker/Dockerfile.dev
+    init: true
+    environment:
+      MEDIA_WORKER_PORT: '3002'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3002/media/health').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-livetv}
+      POSTGRES_USER: ${POSTGRES_USER:-livetv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-livetv-dev-only}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      media-worker:
+        condition: service_healthy
+    ports:
+      - '${LIVETV_HTTP_PORT:-8080}:8080'
+    volumes:
+      - ./infra/reverse-proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  postgres-data:
