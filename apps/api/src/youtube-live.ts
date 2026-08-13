@@ -124,7 +124,7 @@ export function extractYouTubeLivePage(html: string): YouTubeLiveResolution {
   }
 }
 
-export async function resolveYouTubeChannelLive(
+export async function resolveYouTubeChannelLivePage(
   input: string,
   fetchImpl: typeof fetch = fetch,
 ) {

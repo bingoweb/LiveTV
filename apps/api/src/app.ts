@@ -1,18 +1,25 @@
 import Fastify from 'fastify'
 
 import { createServiceHealth } from '@livetv/shared'
-import { resolveYouTubeChannelLive } from './youtube-live.js'
+import { createYouTubeLiveResolver } from './youtube-live-service.js'
 
 type BuildApiOptions = {
   fetchImpl?: typeof fetch
+  youtubeApiKey?: string
+  now?: () => number
 }
 
 export function buildApi(options: BuildApiOptions = {}) {
   const app = Fastify()
+  const resolveYouTubeChannelLive = createYouTubeLiveResolver({
+    apiKey: options.youtubeApiKey ?? process.env.YOUTUBE_DATA_API_KEY,
+    fetchImpl: options.fetchImpl ?? fetch,
+    ...(options.now ? { now: options.now } : {}),
+  })
 
   app.get('/api/health', async () => createServiceHealth('api'))
 
-  app.get<{ Querystring: { url?: string } }>(
+  app.get<{ Querystring: { url?: string; refresh?: string } }>(
     '/api/youtube/resolve-live',
     async (request, reply) => {
       const input = request.query.url?.trim()
@@ -24,10 +31,9 @@ export function buildApi(options: BuildApiOptions = {}) {
       }
 
       try {
-        return await resolveYouTubeChannelLive(
-          input,
-          options.fetchImpl ?? fetch,
-        )
+        return await resolveYouTubeChannelLive(input, {
+          refresh: request.query.refresh === '1',
+        })
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Canlı yayın çözümlenemedi.'
