@@ -74,13 +74,13 @@ type PlaylistItem = LibrarySource & {
 
 Repository methods: `recordPlayback`, `listHistory`, `removeHistory`, `clearHistory`, `addFavorite`, `removeFavorite`, `isFavorite`, `listFavorites`, `createPlaylist`, `renamePlaylist`, `deletePlaylist`, `listPlaylists`, `addPlaylistItem`, `removePlaylistItem`, `reorderPlaylistItems`, `listPlaylistItems`.
 
-- [ ] **Step 1: Write failing repository tests** proving schema v1, history dedupe/play-count, 200-row retention, favorite idempotency, playlist-name validation, duplicate playlist-item prevention, contiguous reorder, cascade item deletion, and history clear isolation.
-- [ ] **Step 2: Run** `npx vitest run apps/web/src/library/library-repository.test.ts` and confirm RED.
-- [ ] **Step 3: Check Node IndexedDB** with `node -e "console.log(typeof indexedDB)"`. If unavailable, install `fake-indexeddb` with `npm install --save-dev fake-indexeddb`; import it only in tests.
-- [ ] **Step 4: Implement IndexedDB v1** named `livetv-library` with stores `history`, `favorites`, `playlists`, `playlistItems`; add indexes required by the spec, including unique `[playlistId, sourceKey]`.
-- [ ] **Step 5: Implement repository transactions**. `recordPlayback` trims oldest history after write. `deletePlaylist` removes its items. Reorder validates exact current membership before assigning positions `0..n-1`.
-- [ ] **Step 6: Run** focused tests, web typecheck, and `npm run licenses:check`; confirm PASS.
-- [ ] **Step 7: Commit** with `feat: add IndexedDB guest library repository`.
+- [x] **Step 1: Write failing repository tests** proving schema v1, history dedupe/play-count, 200-row retention, favorite idempotency, playlist-name validation, duplicate playlist-item prevention, contiguous reorder, cascade item deletion, and history clear isolation.
+- [x] **Step 2: Run** `npx vitest run apps/web/src/library/library-repository.test.ts` and confirm RED.
+- [x] **Step 3: Check Node IndexedDB** with `node -e "console.log(typeof indexedDB)"`. If unavailable, install `fake-indexeddb` with `npm install --save-dev fake-indexeddb`; import it only in tests.
+- [x] **Step 4: Implement IndexedDB v1** named `livetv-library` with stores `history`, `favorites`, `playlists`, `playlistItems`; add indexes required by the spec, including unique `[playlistId, sourceKey]`.
+- [x] **Step 5: Implement repository transactions**. `recordPlayback` trims oldest history after write. `deletePlaylist` removes its items. Reorder validates exact current membership before assigning positions `0..n-1`.
+- [x] **Step 6: Run** focused tests, web typecheck, and `npm run licenses:check`; confirm PASS.
+- [x] **Step 7: Commit** with `feat: add IndexedDB guest library repository`.
 
 ---
 
