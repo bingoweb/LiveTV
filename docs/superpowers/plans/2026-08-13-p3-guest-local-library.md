@@ -167,13 +167,13 @@ shouldRecordPlayback(
 ): { record: boolean; nextRecordedSourceKey: string | null }
 ```
 
-- [ ] **Step 1: Write failing session tests** proving only the first `playing` for a loaded source records, pause/resume does not duplicate, changing source records again, and clearing source resets the guard.
-- [ ] **Step 2: Write failing source-action tests** for favorite/unfavorite, add to existing playlist, create playlist + add, and disabled behavior when no source/storage unavailable.
-- [ ] **Step 3: Run focused tests** and confirm RED.
-- [ ] **Step 4: Integrate player history recording** by converting active `PlayerSource` to `LibrarySource`; record only after the real player state becomes `playing`.
-- [ ] **Step 5: Add active-source library actions** to the existing footer without disturbing play/pause, quality selection, or YouTube external-open behavior.
-- [ ] **Step 6: Run** focused tests and web typecheck; confirm PASS.
-- [ ] **Step 7: Commit** with `feat: connect player to guest library`.
+- [x] **Step 1: Write failing session tests** proving only the first `playing` for a loaded source records, pause/resume does not duplicate, changing source records again, and clearing source resets the guard.
+- [x] **Step 2: Write failing source-action tests** for favorite/unfavorite, add to existing playlist, create playlist + add, and disabled behavior when no source/storage unavailable.
+- [x] **Step 3: Run focused tests** and confirm RED.
+- [x] **Step 4: Integrate player history recording** by converting active `PlayerSource` to `LibrarySource`; record only after the real player state becomes `playing`.
+- [x] **Step 5: Add active-source library actions** to the existing footer without disturbing play/pause, quality selection, or YouTube external-open behavior.
+- [x] **Step 6: Run** focused tests and web typecheck; confirm PASS.
+- [x] **Step 7: Commit** with `feat: connect player to guest library`.
 
 ---
 
