@@ -125,7 +125,7 @@
 - [x] Run repository structure regression test.
 - [x] Run Docker Compose health checks and Caddy endpoints.
 - [x] Update README from P0 status to P1 shell status and document PWA development behavior.
-- [ ] Commit P1 and push `main` to `origin`.
+- [x] Commit P1 and push `main` to `origin`.
 
 ## P1 Exit Criteria
 
