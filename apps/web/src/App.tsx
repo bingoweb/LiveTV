@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation'
 import { RouteContent } from './components/RouteContent'
 import { SettingsShell } from './components/SettingsShell'
 import { UnifiedPlayer } from './components/UnifiedPlayer'
+import { LibraryProvider } from './library/library-context'
 import { resolveRoute } from './navigation'
 
 type AppProps = {
@@ -46,7 +47,8 @@ export function App({ initialPath }: AppProps) {
   }
 
   return (
-    <div className="app-shell">
+    <LibraryProvider>
+      <div className="app-shell">
       <a className="skip-link" href="#main-content">
         İçeriğe geç
       </a>
@@ -88,6 +90,7 @@ export function App({ initialPath }: AppProps) {
           </section>
         </main>
       </div>
-    </div>
+      </div>
+    </LibraryProvider>
   )
 }

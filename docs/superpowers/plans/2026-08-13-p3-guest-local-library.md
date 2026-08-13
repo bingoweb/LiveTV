@@ -116,12 +116,12 @@ type LibraryContextValue = {
 }
 ```
 
-- [ ] **Step 1: Write failing context tests** using an injected fake repository for initial load, post-write refresh, and open failure -> `unavailable` without render crash.
-- [ ] **Step 2: Run** `npx vitest run apps/web/src/library/library-context.test.tsx apps/web/src/App.test.tsx` and confirm RED.
-- [ ] **Step 3: Implement `LibraryProvider` and `useLibrary()`** with one repository instance per page session. Persist first, then refresh state; do not leave optimistic state after failed writes.
-- [ ] **Step 4: Wrap `App`** so route content and player share the same provider.
-- [ ] **Step 5: Run** focused tests and web typecheck; confirm PASS.
-- [ ] **Step 6: Commit** with `feat: expose guest library state to React`.
+- [x] **Step 1: Write failing context tests** using an injected fake repository for initial load, post-write refresh, and open failure -> `unavailable` without render crash.
+- [x] **Step 2: Run** `npx vitest run apps/web/src/library/library-context.test.tsx apps/web/src/App.test.tsx` and confirm RED.
+- [x] **Step 3: Implement `LibraryProvider` and `useLibrary()`** with one repository instance per page session. Persist first, then refresh state; do not leave optimistic state after failed writes.
+- [x] **Step 4: Wrap `App`** so route content and player share the same provider.
+- [x] **Step 5: Run** focused tests and web typecheck; confirm PASS.
+- [x] **Step 6: Commit** with `feat: expose guest library state to React`.
 
 ---
 
