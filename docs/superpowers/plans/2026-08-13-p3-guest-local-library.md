@@ -215,7 +215,7 @@ type PlayerOpenRequest = { id: number; source: LibrarySource }
 - [x] **Step 5: Run Docker acceptance** and verify `/`, `/api/health`, `/media/health`, plus existing YouTube live resolver without printing secrets.
 - [x] **Step 6: Run Chrome DevTools persistence acceptance:** play source -> history; favorite; create playlist/add source; hard reload; confirm all survive; clear history; confirm favorites/playlists remain; confirm no application console errors.
 - [x] **Step 7: Mark evidence/checks in this plan and commit** with `chore: complete P3 guest local library milestone`.
-- [ ] **Step 8: Push `feat/p3-guest-local-library`, open PR, wait for CI, fix actionable failures, merge when green, then fast-forward the normal local `main` checkout while preserving ignored `.env` secrets.**
+- [x] **Step 8: Push `feat/p3-guest-local-library`, open PR, wait for CI, fix actionable failures, merge when green, then fast-forward the normal local `main` checkout while preserving ignored `.env` secrets.**
 
 ## Exit Criteria
 
@@ -240,3 +240,4 @@ type PlayerOpenRequest = { id: number; source: LibrarySource }
 - Clearing history changed IndexedDB counts to `history=0`, `favorites=1`, `playlists=1`, `playlistItems=1`; a later hard reload on the final image preserved those counts.
 - Final browser console inspection returned no application warnings or errors, and the rendered milestone badge reads `P3 / Guest local library`.
 - Repository regression coverage now also injects malformed IndexedDB rows and verifies valid history, favorite, playlist, and playlist-item data remains readable.
+- Integration: `feat/p3-guest-local-library` was pushed as PR #6; GitHub `dependency-review` and `verify` both passed, PR #6 merged to `main` as `b6784c59ad8e034331c12f23cfdcfb9e68ca4012`, and the normal local checkout fast-forwarded to the same commit with the ignored `YOUTUBE_DATA_API_KEY` still present locally.
