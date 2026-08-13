@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LiveTV">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="48" x2="438" y2="462" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8f7cff"/>
+      <stop offset="0.52" stop-color="#5578ff"/>
+      <stop offset="1" stop-color="#3dd4dc"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(364 132) rotate(133) scale(286)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="80" y="94" width="364" height="350" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#080b12" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="#080b12"/>
+  <rect x="58" y="58" width="396" height="396" rx="102" fill="url(#bg)"/>
+  <rect x="58" y="58" width="396" height="396" rx="102" fill="url(#glow)"/>
+  <g filter="url(#shadow)">
+    <rect x="119" y="139" width="274" height="225" rx="54" fill="#0c1120" fill-opacity="0.88" stroke="#ffffff" stroke-opacity="0.22" stroke-width="5"/>
+    <path d="M225 202.5c0-13.4 14.6-21.7 26.2-14.9l92.4 54.5c11.4 6.7 11.4 23.2 0 29.9l-92.4 54.5c-11.6 6.8-26.2-1.5-26.2-14.9V202.5Z" fill="#ffffff"/>
+    <path d="M177 122l79 36 79-36" fill="none" stroke="#ffffff" stroke-opacity="0.92" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

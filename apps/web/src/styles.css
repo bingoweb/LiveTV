@@ -1182,6 +1182,26 @@ a:focus-visible,
   font-weight: 800;
 }
 
+.secondary-button.pwa-action {
+  cursor: pointer;
+  color: var(--text);
+}
+
+.pwa-capability-status {
+  min-height: 36px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-strong);
+  color: var(--text-muted);
+  padding: 0 12px;
+  font-size: 8.5px;
+  font-weight: 750;
+  text-align: center;
+}
+
 @media (max-width: 1180px) and (min-width: 769px) {
   :root {
     --sidebar-width: 82px;
@@ -1562,6 +1582,59 @@ a:focus-visible,
 
   .workspace-grid {
     grid-template-areas: 'player';
+  }
+}
+
+@media (max-height: 500px) and (max-width: 900px) and (orientation: landscape) {
+  .desktop-sidebar {
+    display: none;
+  }
+
+  .app-main-column {
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+
+  .topbar {
+    min-height: 68px;
+    align-items: center;
+    padding: 10px 18px 8px;
+  }
+
+  .topbar-copy h1 {
+    font-size: 20px;
+  }
+
+  .topbar-copy p {
+    display: none;
+  }
+
+  .topbar-status {
+    min-height: 31px;
+  }
+
+  .workspace {
+    padding: 0 14px 12px;
+  }
+
+  .workspace-grid {
+    grid-template-areas: 'player';
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .player-column {
+    width: 100%;
+  }
+
+  .player-card {
+    min-height: auto;
+    border-radius: 20px;
+  }
+
+  .player-viewport {
+    min-height: calc(100vh - 210px);
+    aspect-ratio: auto;
   }
 }
 

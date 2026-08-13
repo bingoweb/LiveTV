@@ -33,10 +33,10 @@
 
 - Produces: `navigationItems`, `resolveRoute(pathname)`, and P1 `appMeta` consumed by the shell.
 
-- [ ] Write failing tests for P1 metadata, all approved primary routes, and unknown-path fallback.
-- [ ] Run the focused tests and confirm failure against the P0 shell.
-- [ ] Implement the minimal route metadata and resolver.
-- [ ] Re-run focused tests and commit the contract.
+- [x] Write failing tests for P1 metadata, all approved primary routes, and unknown-path fallback.
+- [x] Run the focused tests and confirm failure against the P0 shell.
+- [x] Implement the minimal route metadata and resolver.
+- [x] Re-run focused tests and commit the contract.
 
 ### Task 2: Build the responsive application shell
 
@@ -56,10 +56,10 @@
 - Consumes: `navigationItems`, `resolveRoute(pathname)`.
 - Produces: semantic desktop sidebar, tablet rail/layout, mobile bottom navigation/bottom sheet, route content, and player placeholder.
 
-- [ ] Replace the P0 rendering test with failing P1 shell/accessibility assertions.
-- [ ] Implement semantic shell components and route state based on History API.
-- [ ] Add theme tokens, responsive breakpoints, touch/focus/safe-area/reduced-motion rules.
-- [ ] Verify route and shell tests.
+- [x] Replace the P0 rendering test with failing P1 shell/accessibility assertions.
+- [x] Implement semantic shell components and route state based on History API.
+- [x] Add theme tokens, responsive breakpoints, touch/focus/safe-area/reduced-motion rules.
+- [x] Verify route and shell tests.
 
 ### Task 3: Add the settings shell and route-specific empty states
 
@@ -73,9 +73,9 @@
 
 - Produces: P1-only settings structure without introducing P3 persistence.
 
-- [ ] Add failing assertions for `/settings` and key source routes.
-- [ ] Implement useful P1 placeholders for source entry, library context, and settings categories.
-- [ ] Verify focused tests.
+- [x] Add failing assertions for `/settings` and key source routes.
+- [x] Implement useful P1 placeholders for source entry, library context, and settings categories.
+- [x] Verify focused tests.
 
 ### Task 4: Add installable shell-only PWA behavior
 
@@ -89,15 +89,17 @@
 - Create: `apps/web/src/pwa/register-service-worker.ts`
 - Create: `apps/web/src/components/PwaStatus.tsx`
 - Modify: `apps/web/src/main.tsx`
-- Create: `apps/web/src/pwa/pwa-assets.test.ts`
+- Create: `tests/pwa-assets.test.ts`
+- Create: `apps/web/public/icons/livetv-192.png`
+- Create: `apps/web/public/icons/livetv-512.png`
 
 **Interfaces:**
 
 - Produces: manifest/install metadata, SW registration, install prompt state, and update-ready reload action.
 
-- [ ] Add a failing asset-contract test for manifest and service-worker cache exclusions.
-- [ ] Add manifest, icon, service worker, registration, and install/update UI.
-- [ ] Verify focused PWA tests and production build output.
+- [x] Add a failing asset-contract test for manifest and service-worker cache exclusions.
+- [x] Add manifest, icon, service worker, registration, and install/update UI.
+- [x] Verify focused PWA tests and production build output.
 
 ### Task 5: Browser acceptance across desktop/tablet/phone
 
@@ -105,11 +107,12 @@
 
 - No production file required unless browser acceptance exposes a defect.
 
-- [ ] Run LiveTV locally through the normal Docker/Caddy entry point.
-- [ ] Verify desktop navigation/player composition.
-- [ ] Verify tablet two-column composition and reduced navigation rail.
-- [ ] Verify phone bottom navigation, safe-area behavior, and secondary bottom sheet.
-- [ ] Check console/network errors and confirm manifest/service-worker availability.
+- [x] Run LiveTV locally through the normal Docker/Caddy entry point.
+- [x] Verify desktop navigation/player composition.
+- [x] Verify tablet two-column composition and reduced navigation rail.
+- [x] Verify phone bottom navigation, safe-area behavior, and secondary bottom sheet.
+- [x] Check console/network errors and confirm manifest/service-worker availability.
+- [x] Verify short-screen phone landscape uses a full-width player; add a regression test for the discovered grid defect.
 
 ### Task 6: P1 exit verification and documentation
 
@@ -118,21 +121,21 @@
 - Modify: `README.md`
 - Modify: this plan as tasks are completed.
 
-- [ ] Run `npm run verify`.
-- [ ] Run repository structure regression test.
-- [ ] Run Docker Compose health checks and Caddy endpoints.
-- [ ] Update README from P0 status to P1 shell status and document PWA development behavior.
+- [x] Run `npm run verify`.
+- [x] Run repository structure regression test.
+- [x] Run Docker Compose health checks and Caddy endpoints.
+- [x] Update README from P0 status to P1 shell status and document PWA development behavior.
 - [ ] Commit P1 and push `main` to `origin`.
 
 ## P1 Exit Criteria
 
-- [ ] Desktop sidebar navigation works.
-- [ ] Tablet split layout works.
-- [ ] Mobile bottom navigation and secondary bottom sheet work.
-- [ ] Every approved top-level section has a route shell.
-- [ ] Player placeholder and settings shell are present.
-- [ ] Keyboard focus, skip-link, semantic landmarks, and reduced-motion support are present.
-- [ ] Web manifest is served and standalone-capable.
-- [ ] Service worker registers and excludes API/media traffic from caching.
-- [ ] Install/update affordances are wired to browser capabilities.
-- [ ] Full repository verification and Docker acceptance pass.
+- [x] Desktop sidebar navigation works.
+- [x] Tablet split layout works.
+- [x] Mobile bottom navigation and secondary bottom sheet work.
+- [x] Every approved top-level section has a route shell.
+- [x] Player placeholder and settings shell are present.
+- [x] Keyboard focus, skip-link, semantic landmarks, and reduced-motion support are present.
+- [x] Web manifest is served and standalone-capable.
+- [x] Service worker registers and excludes API/media traffic from caching.
+- [x] Install/update affordances are wired to browser capabilities.
+- [x] Full repository verification and Docker acceptance pass.

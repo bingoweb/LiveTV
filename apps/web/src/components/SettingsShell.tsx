@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { AppIcon } from './AppIcon'
+import { PwaStatus } from './PwaStatus'
 
 type ThemeMode = 'system' | 'dark' | 'light'
 type StartupMode = 'home' | 'last' | 'default'
@@ -160,9 +161,7 @@ export function SettingsShell() {
                 içerikleri offline arşivlenmeyecek.
               </small>
             </div>
-            <button type="button" className="secondary-button" disabled>
-              Kurulum hazırlanıyor
-            </button>
+            <PwaStatus />
           </div>
         </section>
       </div>
