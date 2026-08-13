@@ -13,6 +13,11 @@ const requiredPaths = [
   'services/media-worker/Dockerfile.dev',
   'compose.yaml',
   'infra/reverse-proxy/Caddyfile',
+  'scripts/check-licenses.mjs',
+  '.github/workflows/ci.yml',
+  '.github/workflows/dependency-review.yml',
+  '.github/dependabot.yml',
+  'README.md',
 ]
 
 test('P0 repository contains every required top-level component', () => {

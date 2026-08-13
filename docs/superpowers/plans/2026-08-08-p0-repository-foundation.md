@@ -78,7 +78,7 @@ LiveTV/
 │   ├── dev.mjs
 │   └── check-licenses.mjs
 ├── tests/
-│   └── repository-structure.test.mjs
+│   └── repository-structure.node.mjs
 ├── .dockerignore
 ├── .editorconfig
 ├── .env.example
@@ -111,7 +111,7 @@ LiveTV/
 - Create: `tsconfig.base.json`
 - Create: `eslint.config.js`
 - Create: `scripts/dev.mjs`
-- Create: `tests/repository-structure.test.mjs`
+- Create: `tests/repository-structure.node.mjs`
 - Create: initial workspace `package.json`/`tsconfig.json` files under `apps/*`, `services/*`, and `packages/*`
 
 **Interfaces:**
@@ -157,12 +157,12 @@ Create `package.json` with this contract:
 
 - [ ] **Step 3: Add a failing structure test**
 
-Create `tests/repository-structure.test.mjs` using Node assertions to require these paths: `apps/web/package.json`, `apps/api/package.json`, `services/media-worker/package.json`, `packages/shared/package.json`, `packages/player-core/package.json`, `compose.yaml`, and `infra/reverse-proxy/Caddyfile`.
+Create `tests/repository-structure.node.mjs` using Node assertions to require these paths: `apps/web/package.json`, `apps/api/package.json`, `services/media-worker/package.json`, `packages/shared/package.json`, `packages/player-core/package.json`, `compose.yaml`, and `infra/reverse-proxy/Caddyfile`.
 
 Run:
 
 ```bash
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 ```
 
 Expected: FAIL because required P0 paths do not all exist yet.
@@ -192,7 +192,7 @@ Run:
 ```bash
 npm run format
 npm run lint
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 ```
 
 Expected: lint passes; structure test may still fail only for artifacts intentionally produced by later tasks.
@@ -396,7 +396,7 @@ git commit -m "feat: add P0 api and media worker service boundaries"
 - Create: `packages/player-core/src/index.ts`
 - Create: `packages/player-core/test/package.test.ts`
 - Modify: `packages/player-core/package.json`
-- Modify: `tests/repository-structure.test.mjs`
+- Modify: `tests/repository-structure.node.mjs`
 
 **Interfaces:**
 
@@ -416,7 +416,7 @@ Create a single typed export and no media dependencies.
 Run:
 
 ```bash
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 npx vitest run packages/player-core/test/package.test.ts
 ```
 
@@ -425,7 +425,7 @@ Expected: structure test still fails only because Compose/Caddy/CI files are not
 - [ ] **Step 4: Commit the package boundary**
 
 ```bash
-git add packages/player-core tests/repository-structure.test.mjs
+git add packages/player-core tests/repository-structure.node.mjs
 git commit -m "chore: establish player core package boundary"
 ```
 
@@ -441,7 +441,7 @@ git commit -m "chore: establish player core package boundary"
 - Create: `infra/reverse-proxy/Caddyfile`
 - Create: `compose.yaml`
 - Modify: `.env.example`
-- Modify: `tests/repository-structure.test.mjs`
+- Modify: `tests/repository-structure.node.mjs`
 
 **Interfaces:**
 
@@ -453,7 +453,7 @@ git commit -m "chore: establish player core package boundary"
 Run:
 
 ```bash
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 ```
 
 Expected: FAIL for `compose.yaml` and/or `infra/reverse-proxy/Caddyfile`.
@@ -493,7 +493,7 @@ Expose only development ports documented in `.env.example`. Caddy is the normal 
 Run:
 
 ```bash
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 grep -q 'postgres:18-alpine' compose.yaml
 grep -q 'reverse_proxy api:3001' infra/reverse-proxy/Caddyfile
 grep -q 'reverse_proxy media-worker:3002' infra/reverse-proxy/Caddyfile
@@ -520,7 +520,7 @@ Expected: config passes; stack becomes healthy; three HTTP checks succeed. If th
 - [ ] **Step 7: Commit infrastructure**
 
 ```bash
-git add compose.yaml infra .env.example .dockerignore apps/*/Dockerfile.dev services/media-worker/Dockerfile.dev tests/repository-structure.test.mjs
+git add compose.yaml infra .env.example .dockerignore apps/*/Dockerfile.dev services/media-worker/Dockerfile.dev tests/repository-structure.node.mjs
 git commit -m "chore: add P0 Docker Compose development stack"
 ```
 
@@ -605,7 +605,7 @@ Also state that the repository source license is intentionally undecided in P0 a
 
 ```bash
 npm run verify
-node --test tests/repository-structure.test.mjs
+node --test tests/repository-structure.node.mjs
 git status --short
 ```
 
