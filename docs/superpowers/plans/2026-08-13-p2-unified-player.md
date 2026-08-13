@@ -69,7 +69,7 @@
 
 - [x] Update README with P2 behavior and source support.
 - [x] Run full repository verification and Docker acceptance.
-- [ ] Commit and push P2.
+- [x] Commit and push the first P2 YouTube-live technical milestone (`aa3aef4`).
 
 ## Exit Criteria
 
