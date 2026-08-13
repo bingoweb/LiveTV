@@ -76,7 +76,7 @@
   }): YouTubeDataApiClient
   ```
 
-- [ ] **Step 1: Write failing tests for handle/channel normalization and request composition**
+- [x] **Step 1: Write failing tests for handle/channel normalization and request composition**
 
   Add tests that call `resolveChannelLive('https://www.youtube.com/@Halktvkanali')` with a mocked `fetch` sequence and assert:
 
@@ -96,7 +96,7 @@
   expect(searchUrl.searchParams.get('maxResults')).toBe('10')
   ```
 
-- [ ] **Step 2: Run the new API-client test and verify RED**
+- [x] **Step 2: Run the new API-client test and verify RED**
 
   Run:
 
@@ -106,7 +106,7 @@
 
   Expected: FAIL because `createYouTubeDataApiClient` does not exist.
 
-- [ ] **Step 3: Implement channel reference parsing and the minimum Data API client**
+- [x] **Step 3: Implement channel reference parsing and the minimum Data API client**
 
   `youtube-data-api.ts` must:
 
@@ -119,7 +119,7 @@
 
   Accept `@handle`, `youtube.com/@handle`, and `youtube.com/channel/UC...`. A direct channel ID skips `channels.list`; a handle calls `channels.list(part=id,snippet&forHandle=...)`. Invalid/non-YouTube URLs throw a client-input error before any Google request.
 
-- [ ] **Step 4: Add RED tests for live enrichment and offline behavior**
+- [x] **Step 4: Add RED tests for live enrichment and offline behavior**
 
   Mock `search.list` with one active video and `videos.list` with:
 
@@ -148,11 +148,11 @@
 
   Assert `status: 'live'`, current `videoId`, canonical `videoUrl`, title, thumbnail, start time, and viewer count. Add a second test where `search.list.items` is empty and assert `{ status: 'offline', channelId }` without calling `videos.list`.
 
-- [ ] **Step 5: Implement live verification/enrichment and API errors**
+- [x] **Step 5: Implement live verification/enrichment and API errors**
 
   Build requests with `URL`/`URLSearchParams`, a 12 second `AbortSignal.timeout`, and explicit JSON response validation. For non-2xx Google responses, throw an error containing the HTTP status and YouTube error message when present. Do not silently convert API errors into offline state.
 
-- [ ] **Step 6: Add RED tests for caching and manual refresh bypass**
+- [x] **Step 6: Add RED tests for caching and manual refresh bypass**
 
   Use an injectable `now()` and assert:
 
@@ -168,11 +168,11 @@
 
   Advance fake time past 15 seconds for an offline result and assert a fresh search; separately verify a live result remains cached until 25 seconds.
 
-- [ ] **Step 7: Implement the two caches and make all Task 1 tests GREEN**
+- [x] **Step 7: Implement the two caches and make all Task 1 tests GREEN**
 
   Cache handle → channel ID independently from channel ID → live resolution. `{ refresh: true }` ignores only the live-result cache. Never cache thrown errors.
 
-- [ ] **Step 8: Run Task 1 tests/typecheck and commit**
+- [x] **Step 8: Run Task 1 tests/typecheck and commit**
 
   Run:
 
@@ -226,7 +226,7 @@
   >
   ```
 
-- [ ] **Step 1: Refactor the current HTML resolver name without changing behavior**
+- [x] **Step 1: Refactor the current HTML resolver name without changing behavior**
 
   Rename its network entry point to:
 
@@ -239,7 +239,7 @@
 
   Keep `normalizeYouTubeChannelLiveUrl` and `extractYouTubeLivePage` behavior intact.
 
-- [ ] **Step 2: Write RED orchestration tests**
+- [x] **Step 2: Write RED orchestration tests**
 
   Cover four cases:
 
@@ -248,11 +248,11 @@
   3. Google 403/429/5xx or network error → HTML `/live` fallback, `discoveryMethod: 'live-page-fallback'` and a concise `warning`;
   4. both Google and `/live` fail → API returns HTTP 502 with `youtube_live_resolution_failed`.
 
-- [ ] **Step 3: Implement `createYouTubeLiveResolver`**
+- [x] **Step 3: Implement `createYouTubeLiveResolver`**
 
   Construct the Data API client once when a key exists. A valid Data API `offline` result is authoritative and does not trigger scraping. Only missing-key or Data API failure uses the HTML resolver.
 
-- [ ] **Step 4: Wire Fastify to one persistent resolver instance and `refresh=1`**
+- [x] **Step 4: Wire Fastify to one persistent resolver instance and `refresh=1`**
 
   Change options to:
 
@@ -270,7 +270,7 @@
   resolver(input, { refresh: request.query.refresh === '1' })
   ```
 
-- [ ] **Step 5: Run Task 2 tests/typecheck and commit**
+- [x] **Step 5: Run Task 2 tests/typecheck and commit**
 
   Run:
 
@@ -308,7 +308,7 @@
   ): Promise<LiveChannelStatus[]>
   ```
 
-- [ ] **Step 1: Write RED tests for resolver metadata and manual refresh**
+- [x] **Step 1: Write RED tests for resolver metadata and manual refresh**
 
   Extend the live payload fixture with:
 
@@ -329,11 +329,11 @@
 
   and assert both requests contain `refresh=1`.
 
-- [ ] **Step 2: Implement the richer payload and refresh option**
+- [x] **Step 2: Implement the richer payload and refresh option**
 
   Preserve Halk TV and ANKA as a data-driven registry. Keep failures per-channel so one bad response never hides the other source. Rename the user-facing error state only if necessary; do not conflate an API failure with `offline`.
 
-- [ ] **Step 3: Run web channel tests/typecheck and commit**
+- [x] **Step 3: Run web channel tests/typecheck and commit**
 
   Run:
 
@@ -364,11 +364,11 @@
 - Consumes: `/api/youtube/resolve-live?url=...&refresh=1` and existing `PlayerController`.
 - Preserves: `readYouTubeEmbedMode()` default `premium-session` and `buildYouTubePlyrOptions(..., 'premium-session')` → `noCookie: false` + current origin.
 
-- [ ] **Step 1: Write RED rendering/interaction contract tests**
+- [x] **Step 1: Write RED rendering/interaction contract tests**
 
   Ensure the YouTube route continues to render Halk TV, ANKA, the Premium control, refresh control, and clear live/offline/unavailable wording. Add assertions for `Şu anda canlı yayın yok` or equivalent explicit offline wording rather than a generic disabled state.
 
-- [ ] **Step 2: Make manual channel refresh bypass the server live cache**
+- [x] **Step 2: Make manual channel refresh bypass the server live cache**
 
   Change only the explicit `Yenile` action to:
 
@@ -378,15 +378,15 @@
 
   Keep 30-second background/focus refreshes cache-friendly.
 
-- [ ] **Step 3: Avoid stale video IDs when opening a featured channel**
+- [x] **Step 3: Avoid stale video IDs when opening a featured channel**
 
   On a live channel click, force one fresh resolver lookup before loading the YouTube adapter. If the forced lookup reports offline, destroy the old adapter and surface the offline message instead of replaying the previous video ID.
 
-- [ ] **Step 4: Add one bounded rediscovery attempt when channel-based player loading fails**
+- [x] **Step 4: Add one bounded rediscovery attempt when channel-based player loading fails**
 
   For channel references only: destroy the failed adapter, resolve once with `refresh=1`, and retry `controller.load` once. Do not loop. Direct YouTube video URLs, HLS, and direct media retain their existing path.
 
-- [ ] **Step 5: Verify Premium/session mode has not regressed**
+- [x] **Step 5: Verify Premium/session mode has not regressed**
 
   Run:
 
@@ -396,7 +396,7 @@
 
   Expected: the Premium-session test still asserts `noCookie: false` and the supplied origin.
 
-- [ ] **Step 6: Run web typecheck and commit**
+- [x] **Step 6: Run web typecheck and commit**
 
   Run:
 
@@ -425,11 +425,11 @@
 
 - Documents server variable: `YOUTUBE_DATA_API_KEY=`.
 
-- [ ] **Step 1: Document configuration and behavior**
+- [x] **Step 1: Document configuration and behavior**
 
   Add `YOUTUBE_DATA_API_KEY=` to `.env.example`. Update README so it states that official Data API discovery is primary when configured, the HTML `/live` path is automatic fallback, manual refresh bypasses the short live cache, and the key never belongs in Vite client variables.
 
-- [ ] **Step 2: Run the full repository quality gate**
+- [x] **Step 2: Run the full repository quality gate**
 
   Run:
 
@@ -439,7 +439,7 @@
 
   Expected: format, lint, typecheck, all Vitest tests, all workspace builds, and license checks PASS.
 
-- [ ] **Step 3: Verify container/reverse-proxy acceptance**
+- [x] **Step 3: Verify container/reverse-proxy acceptance**
 
   Locate the repository's existing Compose file/config and run the existing project acceptance sequence through Caddy. Minimum assertions:
 
@@ -452,7 +452,7 @@
 
   If `YOUTUBE_DATA_API_KEY` is absent locally, verify the real `/live` fallback path and use deterministic mocked tests as proof of the API-key path; do not fabricate a successful real Data API call.
 
-- [ ] **Step 4: Browser acceptance on the real app**
+- [x] **Step 4: Browser acceptance on the real app**
 
   Using Playwright/Chrome DevTools against the Caddy entry point:
 
@@ -464,7 +464,7 @@
   6. inspect console/network for actual resolver or player failures;
   7. switch sources and confirm stale YouTube player instances are removed.
 
-- [ ] **Step 5: Check API-key availability without printing the secret**
+- [x] **Step 5: Check API-key availability without printing the secret**
 
   Run a command that reports only `configured` or `not configured`; never echo the key itself. If not configured, record that real official-API acceptance remains environment-dependent while fallback playback remains testable.
 
@@ -480,13 +480,21 @@
 
 ## Exit Criteria
 
-- [ ] `YOUTUBE_DATA_API_KEY` is supported server-side and never required in the browser bundle.
-- [ ] Halk TV and ANKA remain built-in data-driven live sources.
-- [ ] Official YouTube Data API is primary when configured.
-- [ ] Existing `/live` resolver automatically takes over when the official API is unavailable or unconfigured.
-- [ ] Current changing live video IDs are discovered instead of hardcoded.
-- [ ] Live/offline results use short bounded caches and manual refresh bypasses the live cache.
-- [ ] A channel-based player failure gets at most one forced rediscovery/retry.
-- [ ] Premium/session-friendly `youtube.com` mode remains the default without ad-bypass logic.
-- [ ] Full repository verification passes.
-- [ ] Caddy/API/browser acceptance is completed, with any missing local API key reported explicitly rather than hidden.
+- [x] `YOUTUBE_DATA_API_KEY` is supported server-side and never required in the browser bundle.
+- [x] Halk TV and ANKA remain built-in data-driven live sources.
+- [x] Official YouTube Data API is primary when configured.
+- [x] Existing `/live` resolver automatically takes over when the official API is unavailable or unconfigured.
+- [x] Current changing live video IDs are discovered instead of hardcoded.
+- [x] Live/offline results use short bounded caches and manual refresh bypasses the live cache.
+- [x] A channel-based player failure gets at most one forced rediscovery/retry.
+- [x] Premium/session-friendly `youtube.com` mode remains the default without ad-bypass logic.
+- [x] Full repository verification passes.
+- [x] Caddy/API/browser acceptance is completed with a real configured YouTube Data API key and the automatic `/live` fallback separately verified.
+
+## Completion Evidence
+
+- A Google Cloud API key named `LiveTV YouTube Data API` was created in the existing project and restricted to `YouTube Data API v3`; the secret value is not stored in Git.
+- The local ignored `.env` provides the key only to the API service through Compose.
+- Real Caddy/API acceptance returned `discoveryMethod: "data-api"`, `officialApiAvailable: true`, and the current Halk TV live video without a warning.
+- The no-key acceptance path was also exercised successfully: the same endpoint resolved Halk TV through `discoveryMethod: "live-page"` while ANKA reported offline.
+- Chrome DevTools verified the standard `youtube.com/embed/...` player with `noCookie=false`, current `origin`, `refresh=1` requests, explicit offline handling, zero stale YouTube iframes after switching to an offline channel, and no console errors/warnings/issues.
