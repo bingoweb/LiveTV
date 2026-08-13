@@ -28,6 +28,7 @@ services:
     init: true
     environment:
       API_PORT: '3001'
+      YOUTUBE_DATA_API_KEY: ${YOUTUBE_DATA_API_KEY:-}
     healthcheck:
       test:
         [

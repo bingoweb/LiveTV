@@ -18,6 +18,10 @@ describe('loadFeaturedLiveStatuses', () => {
             title: '#CANLI | Günaydın Türkiye',
             thumbnailUrl:
               'https://i.ytimg.com/vi/1uvsDurqSpM/maxresdefault.jpg',
+            discoveryMethod: 'data-api',
+            officialApiAvailable: true,
+            actualStartTime: '2026-08-13T04:30:00Z',
+            concurrentViewers: '1234',
           }),
           { status: 200, headers: { 'content-type': 'application/json' } },
         )
@@ -37,6 +41,10 @@ describe('loadFeaturedLiveStatuses', () => {
         status: 'live',
         videoId: '1uvsDurqSpM',
         title: '#CANLI | Günaydın Türkiye',
+        discoveryMethod: 'data-api',
+        officialApiAvailable: true,
+        actualStartTime: '2026-08-13T04:30:00Z',
+        concurrentViewers: '1234',
       }),
       expect.objectContaining({
         channel: featuredYouTubeChannels[1],
@@ -61,5 +69,21 @@ describe('loadFeaturedLiveStatuses', () => {
 
     expect(statuses[0]).toMatchObject({ status: 'error' })
     expect(statuses[1]).toMatchObject({ status: 'offline' })
+  })
+
+  it('adds refresh=1 to every featured channel request on manual refresh', async () => {
+    const requestedUrls: string[] = []
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      requestedUrls.push(String(input))
+      return new Response(JSON.stringify({ status: 'offline' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    })
+
+    await loadFeaturedLiveStatuses(fetchImpl, { refresh: true })
+
+    expect(requestedUrls).toHaveLength(featuredYouTubeChannels.length)
+    expect(requestedUrls.every((url) => url.includes('refresh=1'))).toBe(true)
   })
 })

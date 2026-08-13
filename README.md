@@ -18,7 +18,8 @@ P2 currently includes:
 - automatic URL classification plus a manual source-engine selector for ambiguous/extensionless URLs,
 - lazy-loaded Plyr and HLS.js chunks so media engines do not inflate the initial application bundle,
 - YouTube video URL parsing and embedded playback with the current LiveTV origin,
-- YouTube channel/@handle live resolution through `/api/youtube/resolve-live`, so a channel URL can follow its current `/live` broadcast instead of storing one stale video ID,
+- YouTube channel/@handle live discovery through `/api/youtube/resolve-live`, preferring the official YouTube Data API when `YOUTUBE_DATA_API_KEY` is configured and automatically falling back to the channel `/live` page when the API is unavailable,
+- short live/offline discovery caches with explicit manual-refresh bypass, so changing broadcast IDs are refreshed without repeatedly spending upstream requests,
 - built-in quick actions for `@Halktvkanali` and `@ankahaberajans`, including a clear offline state when a channel has no active live stream,
 - a YouTube Premium session mode that uses the normal `youtube.com` embed so the browser can reuse an existing signed-in YouTube/Premium session when allowed,
 - a privacy-enhanced YouTube mode using `youtube-nocookie.com`, selectable from the player or Settings,
@@ -89,6 +90,14 @@ The normal browser entry point is Caddy:
 
 The stack also includes PostgreSQL 18 with a named development volume. Development-only defaults live in `.env.example`; copy them to a local `.env` only when you need overrides. `.env` files are ignored by Git.
 
+For official YouTube live discovery, set the optional server-side key in `.env`:
+
+```text
+YOUTUBE_DATA_API_KEY=your-youtube-data-api-key
+```
+
+The key is passed only to the Fastify API service; it is not a Vite/client variable and must not be added as `VITE_*`. If the key is absent, LiveTV remains functional and uses the channel `/live` resolver instead.
+
 ## Unified player
 
 Open any route that exposes the player and enter a source URL. The automatic classifier recognizes YouTube video URLs, `.m3u8` HLS manifests, common audio extensions, and direct web media. Extensionless or signed CDN URLs remain usable as direct video by default; the `Motor` selector can explicitly force HLS, YouTube, Video, or Audio when automatic detection is not enough.
@@ -100,7 +109,9 @@ https://www.youtube.com/@Halktvkanali
 https://www.youtube.com/@ankahaberajans
 ```
 
-are resolved to the channel's current `/live` target before playback. If there is no current live broadcast, LiveTV reports that state instead of reusing an old broadcast.
+are resolved to the channel's current broadcast before playback. With `YOUTUBE_DATA_API_KEY` configured, the API first resolves the channel ID with `channels.list`, searches the channel's active broadcast with `search.list`, and verifies/enriches the current video with `videos.list`. If the official API fails, LiveTV automatically falls back to the channel's `/live` page. If the official API successfully reports that the channel is offline, that result is treated as authoritative instead of scraping for a different answer.
+
+Channel IDs are cached for a long period in the API process. Live results use a short 25-second cache and offline results a 15-second cache. Background status refreshes can use those caches; the user-facing `Yenile` action sends `refresh=1`, which bypasses only the short live/offline cache while retaining the stable channel-ID lookup. Channel playback also forces a fresh resolution before loading, and a failed channel-based player load receives at most one additional fresh discovery/retry.
 
 ### YouTube Premium session mode
 
@@ -152,6 +163,7 @@ docker compose up --build -d --wait
 curl --fail http://localhost:8080/
 curl --fail http://localhost:8080/api/health
 curl --fail http://localhost:8080/media/health
+curl --fail 'http://localhost:8080/api/youtube/resolve-live?url=https%3A%2F%2Fwww.youtube.com%2F%40Halktvkanali'
 docker compose down
 ```
 

@@ -4,6 +4,9 @@ export type FeaturedYouTubeChannel = {
   url: string
 }
 
+type YouTubeLiveDiscoveryMethod =
+  'data-api' | 'live-page' | 'live-page-fallback'
+
 export type LiveChannelStatus =
   | {
       channel: FeaturedYouTubeChannel
@@ -12,6 +15,11 @@ export type LiveChannelStatus =
       videoUrl: string
       title?: string
       thumbnailUrl?: string
+      discoveryMethod?: YouTubeLiveDiscoveryMethod
+      officialApiAvailable?: boolean
+      actualStartTime?: string
+      concurrentViewers?: string
+      warning?: string
     }
   | {
       channel: FeaturedYouTubeChannel
@@ -28,12 +36,21 @@ type FetchLike = (
   init?: RequestInit,
 ) => Promise<Response>
 
+export type LiveChannelLoadOptions = {
+  refresh?: boolean
+}
+
 type LiveResolverPayload = {
   status?: 'live' | 'offline'
   videoId?: string
   videoUrl?: string
   title?: string
   thumbnailUrl?: string
+  discoveryMethod?: YouTubeLiveDiscoveryMethod
+  officialApiAvailable?: boolean
+  actualStartTime?: string
+  concurrentViewers?: string
+  warning?: string
   message?: string
 }
 
@@ -53,10 +70,12 @@ export const featuredYouTubeChannels: readonly FeaturedYouTubeChannel[] = [
 async function loadOneChannel(
   channel: FeaturedYouTubeChannel,
   fetchImpl: FetchLike,
+  options: LiveChannelLoadOptions,
 ): Promise<LiveChannelStatus> {
   try {
+    const refresh = options.refresh ? '&refresh=1' : ''
     const response = await fetchImpl(
-      `/api/youtube/resolve-live?url=${encodeURIComponent(channel.url)}`,
+      `/api/youtube/resolve-live?url=${encodeURIComponent(channel.url)}${refresh}`,
     )
     const payload = (await response
       .json()
@@ -82,6 +101,19 @@ async function loadOneChannel(
         videoUrl: payload.videoUrl,
         ...(payload.title ? { title: payload.title } : {}),
         ...(payload.thumbnailUrl ? { thumbnailUrl: payload.thumbnailUrl } : {}),
+        ...(payload.discoveryMethod
+          ? { discoveryMethod: payload.discoveryMethod }
+          : {}),
+        ...(typeof payload.officialApiAvailable === 'boolean'
+          ? { officialApiAvailable: payload.officialApiAvailable }
+          : {}),
+        ...(payload.actualStartTime
+          ? { actualStartTime: payload.actualStartTime }
+          : {}),
+        ...(payload.concurrentViewers
+          ? { concurrentViewers: payload.concurrentViewers }
+          : {}),
+        ...(payload.warning ? { warning: payload.warning } : {}),
       }
     }
 
@@ -98,10 +130,11 @@ async function loadOneChannel(
 
 export function loadFeaturedLiveStatuses(
   fetchImpl: FetchLike = fetch,
+  options: LiveChannelLoadOptions = {},
 ): Promise<LiveChannelStatus[]> {
   return Promise.all(
     featuredYouTubeChannels.map((channel) =>
-      loadOneChannel(channel, fetchImpl),
+      loadOneChannel(channel, fetchImpl, options),
     ),
   )
 }
