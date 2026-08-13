@@ -9,6 +9,10 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLibrary } from '../library/library-context'
+import {
+  playerPreferenceForLibrarySource,
+  type PlayerOpenRequest,
+} from '../library/library-player-request'
 import { shouldRecordPlayback } from '../library/playback-history-session'
 import { toLibrarySource } from '../library/library-types'
 import type { NavigationItem } from '../navigation'
@@ -33,6 +37,7 @@ import { LibrarySourceActions } from './LibrarySourceActions'
 
 type UnifiedPlayerProps = {
   route: NavigationItem
+  openRequest?: PlayerOpenRequest | null
 }
 
 type PlayerUiState = 'idle' | BrowserPlayerState | 'error'
@@ -67,11 +72,15 @@ function errorMessage(error: unknown) {
   return 'Kaynak açılırken beklenmeyen bir hata oluştu.'
 }
 
-export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
+export function UnifiedPlayer({
+  route,
+  openRequest = null,
+}: UnifiedPlayerProps) {
   const library = useLibrary()
   const hostRef = useRef<HTMLDivElement | null>(null)
   const controllerRef = useRef<PlayerController | null>(null)
   const recordedLibrarySourceKeyRef = useRef<string | null>(null)
+  const consumedOpenRequestIdRef = useRef<number | null>(null)
   const [url, setUrl] = useState('')
   const [preference, setPreference] = useState<PlayerSourcePreference>('auto')
   const [youtubeEmbedMode, setYoutubeEmbedMode] =
@@ -92,9 +101,7 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
 
     if (source.kind === 'youtube') {
       const liveStatus = liveChannelStatuses.find(
-        (
-          status,
-        ): status is Extract<LiveChannelStatus, { status: 'live' }> =>
+        (status): status is Extract<LiveChannelStatus, { status: 'live' }> =>
           status.status === 'live' && status.videoId === source.videoId,
       )
       return toLibrarySource(source, {
@@ -265,6 +272,18 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
       setState('error')
     }
   }
+
+  useEffect(() => {
+    if (!openRequest || consumedOpenRequestIdRef.current === openRequest.id) {
+      return
+    }
+
+    consumedOpenRequestIdRef.current = openRequest.id
+    const nextPreference = playerPreferenceForLibrarySource(openRequest.source)
+    setUrl(openRequest.source.url)
+    setPreference(nextPreference)
+    void openSource(openRequest.source.url, nextPreference)
+  }, [openRequest])
 
   const togglePlayback = async () => {
     const controller = controllerRef.current

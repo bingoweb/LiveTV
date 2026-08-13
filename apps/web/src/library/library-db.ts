@@ -49,8 +49,10 @@ export async function openLibraryDatabase(
       }
     }
 
-    request.onerror = () => reject(request.error ?? new Error('IndexedDB açılamadı.'))
-    request.onblocked = () => reject(new Error('IndexedDB yükseltmesi engellendi.'))
+    request.onerror = () =>
+      reject(request.error ?? new Error('IndexedDB açılamadı.'))
+    request.onblocked = () =>
+      reject(new Error('IndexedDB yükseltmesi engellendi.'))
     request.onsuccess = () => resolve(request.result)
   })
 }
@@ -58,8 +60,10 @@ export async function openLibraryDatabase(
 export async function deleteLibraryDatabase(name: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const request = indexedDB.deleteDatabase(name)
-    request.onerror = () => reject(request.error ?? new Error('IndexedDB silinemedi.'))
-    request.onblocked = () => reject(new Error('IndexedDB silme işlemi engellendi.'))
+    request.onerror = () =>
+      reject(request.error ?? new Error('IndexedDB silinemedi.'))
+    request.onblocked = () =>
+      reject(new Error('IndexedDB silme işlemi engellendi.'))
     request.onsuccess = () => resolve()
   })
 }

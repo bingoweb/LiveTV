@@ -39,7 +39,10 @@ export function PlaylistsLibraryView({
 }: PlaylistsLibraryViewProps) {
   if (library.status === 'unavailable') {
     return (
-      <aside className="context-panel local-library-panel" aria-label="Playlistler">
+      <aside
+        className="context-panel local-library-panel"
+        aria-label="Playlistler"
+      >
         <div className="library-unavailable" role="status">
           <strong>Yerel kütüphane kullanılamıyor</strong>
           <p>Favoriler ve playlistler bu tarayıcı oturumunda kaydedilemiyor.</p>
@@ -50,7 +53,10 @@ export function PlaylistsLibraryView({
 
   if (library.status === 'loading') {
     return (
-      <aside className="context-panel local-library-panel" aria-label="Playlistler">
+      <aside
+        className="context-panel local-library-panel"
+        aria-label="Playlistler"
+      >
         <div className="library-unavailable" role="status">
           <strong>Kütüphane yükleniyor…</strong>
         </div>
@@ -63,7 +69,10 @@ export function PlaylistsLibraryView({
   )
 
   return (
-    <aside className="context-panel local-library-panel" aria-label="Playlistler">
+    <aside
+      className="context-panel local-library-panel"
+      aria-label="Playlistler"
+    >
       <div className="context-heading local-library-heading">
         <span className="eyebrow">Yerel kütüphane</span>
         <h2>Favoriler ve playlistler</h2>
@@ -85,7 +94,10 @@ export function PlaylistsLibraryView({
         ) : (
           <div className="library-entry-list">
             {library.favorites.map((favorite) => (
-              <article className="library-entry library-entry--compact" key={favorite.sourceKey}>
+              <article
+                className="library-entry library-entry--compact"
+                key={favorite.sourceKey}
+              >
                 <div className="library-entry-copy">
                   <strong>{favorite.title}</strong>
                   <small>{favorite.kind.toUpperCase()}</small>
@@ -135,15 +147,23 @@ export function PlaylistsLibraryView({
               <div className="playlist-selector-row" key={playlist.id}>
                 <button
                   type="button"
-                  className={playlist.id === selectedPlaylistId ? 'is-active' : ''}
+                  className={
+                    playlist.id === selectedPlaylistId ? 'is-active' : ''
+                  }
                   onClick={() => onSelectPlaylist(playlist.id)}
                 >
                   {playlist.name}
                 </button>
-                <button type="button" onClick={() => onRenamePlaylist(playlist.id)}>
+                <button
+                  type="button"
+                  onClick={() => onRenamePlaylist(playlist.id)}
+                >
                   Yeniden adlandır
                 </button>
-                <button type="button" onClick={() => onDeletePlaylist(playlist.id)}>
+                <button
+                  type="button"
+                  onClick={() => onDeletePlaylist(playlist.id)}
+                >
                   Playlisti sil
                 </button>
               </div>

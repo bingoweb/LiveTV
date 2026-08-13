@@ -4,9 +4,9 @@ LiveTV is a browser-first media player project designed as a single interface fo
 
 ## Current status
 
-The repository is in **P2 — Unified Player + YouTube + HLS + direct URL**. The responsive PWA shell from P1 is now connected to the first real playback engine.
+The repository is in **P3 — Guest Local Library**. The responsive PWA shell and P2 unified playback engine are now connected to a persistent, account-free local library.
 
-P2 currently includes:
+The current implementation includes:
 
 - desktop sidebar navigation and large player workspace,
 - tablet split layout with a compact navigation rail,
@@ -29,8 +29,15 @@ P2 currently includes:
 - an installable Web App Manifest with 192 px and 512 px application icons,
 - a registered service worker with install/update plumbing,
 - application-shell/static-asset caching that explicitly excludes API and media traffic.
+- native IndexedDB persistence for playback history, favorites, and custom playlists,
+- history recording only after a source reaches a real `playing` state,
+- deduplicated history with a 200-entry retention limit,
+- persistent favorites keyed by stable media-source identity,
+- custom playlist create, rename, delete, add/remove, and explicit up/down reorder operations,
+- functional History and Playlists routes that can send saved sources back into the same unified player,
+- graceful library disablement when IndexedDB is unavailable without disabling playback.
 
-Torrent streaming, M3U playlist parsing/library persistence, authentication, and cross-device sync remain later roadmap phases.
+Torrent streaming, M3U channel-list parsing, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
 
 Current workspace boundaries:
 
@@ -119,6 +126,18 @@ Channel IDs are cached for a long period in the API process. Live results use a 
 
 The alternate privacy mode switches the embed back to `youtube-nocookie.com`.
 
+## Guest local library
+
+P3 stores personal library data in the browser's native IndexedDB database named `livetv-library`. This data is local to the current browser profile and does not require an account.
+
+Playback history is written only after the active player reaches the real `playing` state. Pause/resume events for the same loaded source do not repeatedly create play events. Reopening a source updates its existing history row and moves it to the newest position. Live YouTube broadcasts use the resolved video ID as their stable identity, so a new broadcast receives a new history identity while repeated opens of the same current broadcast remain deduplicated.
+
+History retains at most **200** sources. Clearing history is intentionally isolated: favorites and custom playlists remain intact.
+
+The `/playlists` route contains both Favorites and user-created playlists. A playlist can be created, renamed, deleted, populated from the active player, and reordered with explicit up/down controls. Saved History, Favorite, and Playlist sources are reopened through the existing unified player rather than a separate playback engine.
+
+P3 does **not** synchronize library data to PostgreSQL or another server, and it does not implement accounts, cloud backup, or cross-device state. Watch-progress/resume timestamps are also intentionally deferred. If IndexedDB is blocked or unavailable, LiveTV keeps media playback functional and disables only local-library persistence features.
+
 ## PWA behavior
 
 The normal PWA development entry point is `http://localhost:8080`. Localhost is treated as a secure context by modern browsers, so the service worker can register during local development.
@@ -179,6 +198,6 @@ The software license for LiveTV has **not yet been selected**. This repository b
 
 ## Roadmap boundary
 
-P2 does not implement torrent streaming, M3U playlist parsing, downloads or recording, torrent archival behavior, or seeding. It also does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
+P3 does not implement torrent streaming, M3U channel-list parsing, downloads or recording, torrent archival behavior, seeding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
 
-P2 remains the active focus until YouTube live discovery/playback is technically solid. Responsive polish and the P3 account/library work are intentionally paused behind that blocker. The immediate work order is live-channel discovery, real playback-state verification, resilient retries/fallbacks, and source-switch cleanup.
+The guest library is deliberately repository-backed so a later authenticated synchronization phase can consume the same application-level records without making the player depend on raw IndexedDB structure.

@@ -240,6 +240,7 @@ export function LibraryProvider({
 
 export function useLibrary() {
   const library = useContext(LibraryContext)
-  if (!library) throw new Error('useLibrary, LibraryProvider içinde kullanılmalı.')
+  if (!library)
+    throw new Error('useLibrary, LibraryProvider içinde kullanılmalı.')
   return library
 }

@@ -8,6 +8,7 @@ import {
   deleteLibraryDatabase,
   type LibraryRepository,
 } from './library-repository'
+import { openLibraryDatabase } from './library-db'
 
 const databaseName = 'livetv-library-test'
 
@@ -119,5 +120,38 @@ describe('IndexedDB library repository', () => {
     expect(await repository.listHistory()).toEqual([])
     expect(await repository.listFavorites()).toHaveLength(1)
     expect(await repository.listPlaylists()).toHaveLength(1)
+  })
+
+  it('skips malformed records while preserving valid library data', async () => {
+    await repository.recordPlayback(source(1), 100)
+    await repository.addFavorite(source(1), 100)
+    const playlist = await repository.createPlaylist('Sağlam liste')
+    await repository.addPlaylistItem(playlist.id, source(1))
+
+    const database = await openLibraryDatabase({ name: databaseName })
+    const transaction = database.transaction(
+      ['history', 'favorites', 'playlists', 'playlistItems'],
+      'readwrite',
+    )
+    transaction.objectStore('history').put({ sourceKey: 'broken-history' })
+    transaction.objectStore('favorites').put({ sourceKey: 'broken-favorite' })
+    transaction.objectStore('playlists').put({ id: 'broken-playlist' })
+    transaction.objectStore('playlistItems').put({
+      id: 'broken-item',
+      playlistId: playlist.id,
+      sourceKey: 'broken-source',
+      position: 99,
+    })
+    await new Promise<void>((resolve, reject) => {
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error)
+    })
+    database.close()
+
+    expect(await repository.listHistory()).toHaveLength(1)
+    expect(await repository.listFavorites()).toHaveLength(1)
+    expect(await repository.listPlaylists()).toHaveLength(1)
+    expect(await repository.listPlaylistItems(playlist.id)).toHaveLength(1)
   })
 })

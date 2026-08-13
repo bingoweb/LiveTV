@@ -23,7 +23,12 @@ function library(
     playlists: [{ id: 'p1', name: 'Haberler', createdAt: 1, updatedAt: 2 }],
     recordPlayback: async () => {},
     toggleFavorite: async () => {},
-    createPlaylist: async () => ({ id: 'p1', name: 'x', createdAt: 1, updatedAt: 1 }),
+    createPlaylist: async () => ({
+      id: 'p1',
+      name: 'x',
+      createdAt: 1,
+      updatedAt: 1,
+    }),
     renamePlaylist: async () => {},
     deletePlaylist: async () => {},
     addToPlaylist: async () => {},
@@ -82,7 +87,11 @@ describe('PlaylistsLibraryView', () => {
   it('renders storage unavailable without library controls', () => {
     const markup = renderToStaticMarkup(
       <PlaylistsLibraryView
-        library={library({ status: 'unavailable', favorites: [], playlists: [] })}
+        library={library({
+          status: 'unavailable',
+          favorites: [],
+          playlists: [],
+        })}
         selectedPlaylistId={null}
         items={[]}
         newPlaylistName=""

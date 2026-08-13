@@ -31,22 +31,14 @@ describe('playback history session guard', () => {
     })
 
     expect(
-      shouldRecordPlayback(
-        firstPlay.nextRecordedSourceKey,
-        'paused',
-        first,
-      ),
+      shouldRecordPlayback(firstPlay.nextRecordedSourceKey, 'paused', first),
     ).toEqual({
       record: false,
       nextRecordedSourceKey: first.sourceKey,
     })
 
     expect(
-      shouldRecordPlayback(
-        firstPlay.nextRecordedSourceKey,
-        'playing',
-        first,
-      ),
+      shouldRecordPlayback(firstPlay.nextRecordedSourceKey, 'playing', first),
     ).toEqual({
       record: false,
       nextRecordedSourceKey: first.sourceKey,

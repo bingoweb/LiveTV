@@ -69,7 +69,12 @@ class MemoryRepository implements LibraryRepository {
   }
 
   async createPlaylist(name: string): Promise<Playlist> {
-    const playlist = { id: `p${this.playlists.length + 1}`, name, createdAt: 1, updatedAt: 1 }
+    const playlist = {
+      id: `p${this.playlists.length + 1}`,
+      name,
+      createdAt: 1,
+      updatedAt: 1,
+    }
     this.playlists = [...this.playlists, playlist]
     return playlist
   }
@@ -78,7 +83,9 @@ class MemoryRepository implements LibraryRepository {
     const playlist = this.playlists.find((item) => item.id === id)
     if (!playlist) throw new Error('Playlist bulunamadı.')
     const renamed = { ...playlist, name, updatedAt: playlist.updatedAt + 1 }
-    this.playlists = this.playlists.map((item) => (item.id === id ? renamed : item))
+    this.playlists = this.playlists.map((item) =>
+      item.id === id ? renamed : item,
+    )
     return renamed
   }
 
@@ -91,8 +98,17 @@ class MemoryRepository implements LibraryRepository {
     return [...this.playlists]
   }
 
-  async addPlaylistItem(playlistId: string, source: LibrarySource): Promise<PlaylistItem> {
-    const item = { ...source, id: `i${this.items.length + 1}`, playlistId, position: this.items.length, addedAt: 1 }
+  async addPlaylistItem(
+    playlistId: string,
+    source: LibrarySource,
+  ): Promise<PlaylistItem> {
+    const item = {
+      ...source,
+      id: `i${this.items.length + 1}`,
+      playlistId,
+      position: this.items.length,
+      addedAt: 1,
+    }
     this.items = [...this.items, item]
     return item
   }
@@ -101,7 +117,10 @@ class MemoryRepository implements LibraryRepository {
     this.items = this.items.filter((item) => item.id !== itemId)
   }
 
-  async reorderPlaylistItems(playlistId: string, orderedItemIds: readonly string[]) {
+  async reorderPlaylistItems(
+    playlistId: string,
+    orderedItemIds: readonly string[],
+  ) {
     this.items = this.items.map((item) => {
       if (item.playlistId !== playlistId) return item
       return { ...item, position: orderedItemIds.indexOf(item.id) }

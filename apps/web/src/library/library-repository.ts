@@ -29,7 +29,10 @@ export type PlaylistItem = LibrarySource & {
 }
 
 export interface LibraryRepository {
-  recordPlayback(source: LibrarySource, playedAt?: number): Promise<HistoryEntry>
+  recordPlayback(
+    source: LibrarySource,
+    playedAt?: number,
+  ): Promise<HistoryEntry>
   listHistory(): Promise<HistoryEntry[]>
   removeHistory(sourceKey: string): Promise<void>
   clearHistory(): Promise<void>
@@ -41,7 +44,10 @@ export interface LibraryRepository {
   renamePlaylist(id: string, name: string): Promise<Playlist>
   deletePlaylist(id: string): Promise<void>
   listPlaylists(): Promise<Playlist[]>
-  addPlaylistItem(playlistId: string, source: LibrarySource): Promise<PlaylistItem>
+  addPlaylistItem(
+    playlistId: string,
+    source: LibrarySource,
+  ): Promise<PlaylistItem>
   removePlaylistItem(itemId: string): Promise<void>
   reorderPlaylistItems(
     playlistId: string,
@@ -55,24 +61,108 @@ export type CreateLibraryRepositoryOptions = {
 }
 
 const HISTORY_LIMIT = 200
+const LIBRARY_SOURCE_KINDS = new Set<LibrarySource['kind']>([
+  'youtube',
+  'hls',
+  'video',
+  'audio',
+])
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+function isLibrarySource(value: unknown): value is LibrarySource {
+  if (!isRecord(value)) return false
+  if (
+    typeof value.sourceKey !== 'string' ||
+    typeof value.url !== 'string' ||
+    typeof value.title !== 'string' ||
+    typeof value.kind !== 'string' ||
+    !LIBRARY_SOURCE_KINDS.has(value.kind as LibrarySource['kind'])
+  ) {
+    return false
+  }
+
+  if (
+    value.thumbnailUrl !== undefined &&
+    typeof value.thumbnailUrl !== 'string'
+  ) {
+    return false
+  }
+  if (value.channelUrl !== undefined && typeof value.channelUrl !== 'string') {
+    return false
+  }
+
+  return true
+}
+
+function isHistoryEntry(value: unknown): value is HistoryEntry {
+  if (!isLibrarySource(value)) return false
+  const record = value as LibrarySource & Record<string, unknown>
+  return (
+    isFiniteNumber(record.lastPlayedAt) &&
+    isFiniteNumber(record.playCount) &&
+    record.playCount >= 1
+  )
+}
+
+function isFavoriteEntry(value: unknown): value is FavoriteEntry {
+  if (!isLibrarySource(value)) return false
+  const record = value as LibrarySource & Record<string, unknown>
+  return isFiniteNumber(record.addedAt)
+}
+
+function isPlaylist(value: unknown): value is Playlist {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    isFiniteNumber(value.createdAt) &&
+    isFiniteNumber(value.updatedAt)
+  )
+}
+
+function isPlaylistItem(value: unknown): value is PlaylistItem {
+  if (!isLibrarySource(value)) return false
+  const record = value as LibrarySource & Record<string, unknown>
+  return (
+    typeof record.id === 'string' &&
+    typeof record.playlistId === 'string' &&
+    isFiniteNumber(record.position) &&
+    Number.isInteger(record.position) &&
+    record.position >= 0 &&
+    isFiniteNumber(record.addedAt)
+  )
+}
 
 function requestValue<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    request.onerror = () => reject(request.error ?? new Error('IndexedDB isteği başarısız.'))
+    request.onerror = () =>
+      reject(request.error ?? new Error('IndexedDB isteği başarısız.'))
     request.onsuccess = () => resolve(request.result)
   })
 }
 
 function transactionDone(transaction: IDBTransaction): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    transaction.onabort = () => reject(transaction.error ?? new Error('IndexedDB işlemi iptal edildi.'))
-    transaction.onerror = () => reject(transaction.error ?? new Error('IndexedDB işlemi başarısız.'))
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error('IndexedDB işlemi iptal edildi.'))
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error('IndexedDB işlemi başarısız.'))
     transaction.oncomplete = () => resolve()
   })
 }
 
 function createId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID()
   }
 
@@ -110,9 +200,8 @@ class IndexedDbLibraryRepository implements LibraryRepository {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('history', 'readwrite')
       const store = transaction.objectStore('history')
-      const existing = (await requestValue(store.get(source.sourceKey))) as
-        | HistoryEntry
-        | undefined
+      const existingValue = await requestValue(store.get(source.sourceKey))
+      const existing = isHistoryEntry(existingValue) ? existingValue : undefined
       const entry: HistoryEntry = {
         ...source,
         lastPlayedAt: playedAt,
@@ -120,7 +209,7 @@ class IndexedDbLibraryRepository implements LibraryRepository {
       }
       await requestValue(store.put(entry))
 
-      const all = (await requestValue(store.getAll())) as HistoryEntry[]
+      const all = (await requestValue(store.getAll())).filter(isHistoryEntry)
       if (all.length > HISTORY_LIMIT) {
         const excess = all
           .sort((left, right) => left.lastPlayedAt - right.lastPlayedAt)
@@ -138,11 +227,13 @@ class IndexedDbLibraryRepository implements LibraryRepository {
   async listHistory(): Promise<HistoryEntry[]> {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('history', 'readonly')
-      const entries = (await requestValue(
-        transaction.objectStore('history').getAll(),
-      )) as HistoryEntry[]
+      const entries = (
+        await requestValue(transaction.objectStore('history').getAll())
+      ).filter(isHistoryEntry)
       await transactionDone(transaction)
-      return entries.sort((left, right) => right.lastPlayedAt - left.lastPlayedAt)
+      return entries.sort(
+        (left, right) => right.lastPlayedAt - left.lastPlayedAt,
+      )
     })
   }
 
@@ -169,9 +260,10 @@ class IndexedDbLibraryRepository implements LibraryRepository {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('favorites', 'readwrite')
       const store = transaction.objectStore('favorites')
-      const existing = (await requestValue(store.get(source.sourceKey))) as
-        | FavoriteEntry
-        | undefined
+      const existingValue = await requestValue(store.get(source.sourceKey))
+      const existing = isFavoriteEntry(existingValue)
+        ? existingValue
+        : undefined
       const entry: FavoriteEntry = {
         ...source,
         addedAt: existing?.addedAt ?? addedAt,
@@ -204,9 +296,9 @@ class IndexedDbLibraryRepository implements LibraryRepository {
   async listFavorites(): Promise<FavoriteEntry[]> {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('favorites', 'readonly')
-      const entries = (await requestValue(
-        transaction.objectStore('favorites').getAll(),
-      )) as FavoriteEntry[]
+      const entries = (
+        await requestValue(transaction.objectStore('favorites').getAll())
+      ).filter(isFavoriteEntry)
       await transactionDone(transaction)
       return entries.sort((left, right) => right.addedAt - left.addedAt)
     })
@@ -234,7 +326,8 @@ class IndexedDbLibraryRepository implements LibraryRepository {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('playlists', 'readwrite')
       const store = transaction.objectStore('playlists')
-      const existing = (await requestValue(store.get(id))) as Playlist | undefined
+      const existingValue = await requestValue(store.get(id))
+      const existing = isPlaylist(existingValue) ? existingValue : undefined
       if (!existing) throw new Error('Playlist bulunamadı.')
       const playlist = {
         ...existing,
@@ -254,9 +347,9 @@ class IndexedDbLibraryRepository implements LibraryRepository {
         'readwrite',
       )
       const itemStore = transaction.objectStore('playlistItems')
-      const items = (await requestValue(
-        itemStore.index('playlistId').getAll(id),
-      )) as PlaylistItem[]
+      const items = (
+        await requestValue(itemStore.index('playlistId').getAll(id))
+      ).filter(isPlaylistItem)
       for (const item of items) await requestValue(itemStore.delete(item.id))
       await requestValue(transaction.objectStore('playlists').delete(id))
       await transactionDone(transaction)
@@ -266,9 +359,9 @@ class IndexedDbLibraryRepository implements LibraryRepository {
   async listPlaylists(): Promise<Playlist[]> {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('playlists', 'readonly')
-      const playlists = (await requestValue(
-        transaction.objectStore('playlists').getAll(),
-      )) as Playlist[]
+      const playlists = (
+        await requestValue(transaction.objectStore('playlists').getAll())
+      ).filter(isPlaylist)
       await transactionDone(transaction)
       return playlists.sort((left, right) => right.updatedAt - left.updatedAt)
     })
@@ -284,15 +377,15 @@ class IndexedDbLibraryRepository implements LibraryRepository {
         'readwrite',
       )
       const playlistStore = transaction.objectStore('playlists')
-      const playlist = (await requestValue(
-        playlistStore.get(playlistId),
-      )) as Playlist | undefined
+      const playlistValue = await requestValue(playlistStore.get(playlistId))
+      const playlist = isPlaylist(playlistValue) ? playlistValue : undefined
       if (!playlist) throw new Error('Playlist bulunamadı.')
 
       const itemStore = transaction.objectStore('playlistItems')
-      const existing = (await requestValue(
+      const existingValue = await requestValue(
         itemStore.index('playlistSource').get([playlistId, source.sourceKey]),
-      )) as PlaylistItem | undefined
+      )
+      const existing = isPlaylistItem(existingValue) ? existingValue : undefined
       if (existing) {
         const updated = { ...existing, ...source, id: existing.id }
         await requestValue(itemStore.put(updated))
@@ -300,9 +393,9 @@ class IndexedDbLibraryRepository implements LibraryRepository {
         return updated
       }
 
-      const items = (await requestValue(
-        itemStore.index('playlistId').getAll(playlistId),
-      )) as PlaylistItem[]
+      const items = (
+        await requestValue(itemStore.index('playlistId').getAll(playlistId))
+      ).filter(isPlaylistItem)
       const item: PlaylistItem = {
         ...source,
         id: createId(),
@@ -323,15 +416,16 @@ class IndexedDbLibraryRepository implements LibraryRepository {
     await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('playlistItems', 'readwrite')
       const store = transaction.objectStore('playlistItems')
-      const item = (await requestValue(store.get(itemId))) as PlaylistItem | undefined
+      const itemValue = await requestValue(store.get(itemId))
+      const item = isPlaylistItem(itemValue) ? itemValue : undefined
       if (!item) {
         await transactionDone(transaction)
         return
       }
       await requestValue(store.delete(itemId))
-      const remaining = (await requestValue(
-        store.index('playlistId').getAll(item.playlistId),
-      )) as PlaylistItem[]
+      const remaining = (
+        await requestValue(store.index('playlistId').getAll(item.playlistId))
+      ).filter(isPlaylistItem)
       remaining.sort((left, right) => left.position - right.position)
       for (const [position, remainingItem] of remaining.entries()) {
         if (remainingItem.position !== position) {
@@ -349,9 +443,9 @@ class IndexedDbLibraryRepository implements LibraryRepository {
     await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('playlistItems', 'readwrite')
       const store = transaction.objectStore('playlistItems')
-      const items = (await requestValue(
-        store.index('playlistId').getAll(playlistId),
-      )) as PlaylistItem[]
+      const items = (
+        await requestValue(store.index('playlistId').getAll(playlistId))
+      ).filter(isPlaylistItem)
       const currentIds = new Set(items.map(({ id }) => id))
       const requestedIds = new Set(orderedItemIds)
       if (
@@ -375,9 +469,14 @@ class IndexedDbLibraryRepository implements LibraryRepository {
   async listPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
     return await withDatabase(this.databaseName, async (database) => {
       const transaction = database.transaction('playlistItems', 'readonly')
-      const items = (await requestValue(
-        transaction.objectStore('playlistItems').index('playlistId').getAll(playlistId),
-      )) as PlaylistItem[]
+      const items = (
+        await requestValue(
+          transaction
+            .objectStore('playlistItems')
+            .index('playlistId')
+            .getAll(playlistId),
+        )
+      ).filter(isPlaylistItem)
       await transactionDone(transaction)
       return items.sort((left, right) => left.position - right.position)
     })

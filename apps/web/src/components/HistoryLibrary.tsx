@@ -27,7 +27,10 @@ export function HistoryLibraryView({
       <aside className="context-panel local-library-panel" aria-label="Geçmiş">
         <div className="library-unavailable" role="status">
           <strong>Yerel kütüphane kullanılamıyor</strong>
-          <p>Oynatma çalışmaya devam eder; bu tarayıcı yerel kayıt erişimini engelliyor.</p>
+          <p>
+            Oynatma çalışmaya devam eder; bu tarayıcı yerel kayıt erişimini
+            engelliyor.
+          </p>
         </div>
       </aside>
     )
@@ -79,7 +82,9 @@ export function HistoryLibraryView({
             return (
               <article className="library-entry" key={entry.sourceKey}>
                 <div className="library-entry-copy">
-                  <span className="source-status">{kindLabels[entry.kind]}</span>
+                  <span className="source-status">
+                    {kindLabels[entry.kind]}
+                  </span>
                   <strong>{entry.title}</strong>
                   <small>{entry.playCount} kez oynatıldı</small>
                 </div>

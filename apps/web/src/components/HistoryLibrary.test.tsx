@@ -23,7 +23,12 @@ function library(
     playlists: [],
     recordPlayback: async () => {},
     toggleFavorite: async () => {},
-    createPlaylist: async () => ({ id: 'p1', name: 'x', createdAt: 1, updatedAt: 1 }),
+    createPlaylist: async () => ({
+      id: 'p1',
+      name: 'x',
+      createdAt: 1,
+      updatedAt: 1,
+    }),
     renamePlaylist: async () => {},
     deletePlaylist: async () => {},
     addToPlaylist: async () => {},

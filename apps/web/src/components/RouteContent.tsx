@@ -123,7 +123,7 @@ function HomeContent({ onNavigate }: Pick<RouteContentProps, 'onNavigate'>) {
 
 function SourceContent({ route }: { route: NavigationItem }) {
   const content = sourceHints[route.id]
-  const supportsP2Playback = ['live', 'youtube', 'iptv'].includes(route.id)
+  const supportsPlayback = ['live', 'youtube', 'iptv'].includes(route.id)
 
   const focusPlayerInput = () => {
     document.getElementById('player-source-url')?.focus()
@@ -143,11 +143,11 @@ function SourceContent({ route }: { route: NavigationItem }) {
         </div>
         <div className="source-entry-copy">
           <span className="source-status">
-            {supportsP2Playback ? 'P2 oynatma hazır' : 'Arayüz hazır'}
+            {supportsPlayback ? 'P3 oynatma + kütüphane hazır' : 'Arayüz hazır'}
           </span>
           <strong>{content.action}</strong>
           <p>
-            {supportsP2Playback
+            {supportsPlayback
               ? 'URL alanına geç; LiveTV kaynağı otomatik algılar veya motoru elle seçmene izin verir.'
               : 'Bu bölümün veri motoru ilgili yol haritası fazında bağlanacak.'}
           </p>
@@ -155,10 +155,10 @@ function SourceContent({ route }: { route: NavigationItem }) {
         <button
           className="primary-button"
           type="button"
-          disabled={!supportsP2Playback}
-          onClick={supportsP2Playback ? focusPlayerInput : undefined}
+          disabled={!supportsPlayback}
+          onClick={supportsPlayback ? focusPlayerInput : undefined}
         >
-          {supportsP2Playback ? 'Oynatıcıda aç' : 'Yakında'}
+          {supportsPlayback ? 'Oynatıcıda aç' : 'Yakında'}
         </button>
       </section>
 

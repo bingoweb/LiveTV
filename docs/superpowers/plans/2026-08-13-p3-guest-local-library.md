@@ -24,11 +24,13 @@
 ### Task 1: Stable library source identity
 
 **Files:**
+
 - Create: `apps/web/src/library/library-types.ts`
 - Create: `apps/web/src/library/source-key.ts`
 - Test: `apps/web/src/library/source-key.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PlayerSource` from `@livetv/player-core`.
 - Produces: `LibrarySource`, `LibrarySourceKind`, `createSourceKey()`, `toLibrarySource()`.
 
@@ -53,6 +55,7 @@ direct video -> `video:${normalizedUrl}`
 ### Task 2: IndexedDB schema and repository
 
 **Files:**
+
 - Create: `apps/web/src/library/library-db.ts`
 - Create: `apps/web/src/library/library-repository.ts`
 - Test: `apps/web/src/library/library-repository.test.ts`
@@ -63,7 +66,12 @@ direct video -> `video:${normalizedUrl}`
 ```ts
 type HistoryEntry = LibrarySource & { lastPlayedAt: number; playCount: number }
 type FavoriteEntry = LibrarySource & { addedAt: number }
-type Playlist = { id: string; name: string; createdAt: number; updatedAt: number }
+type Playlist = {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+}
 type PlaylistItem = LibrarySource & {
   id: string
   playlistId: string
@@ -87,6 +95,7 @@ Repository methods: `recordPlayback`, `listHistory`, `removeHistory`, `clearHist
 ### Task 3: React library context and failure isolation
 
 **Files:**
+
 - Create: `apps/web/src/library/library-context.tsx`
 - Test: `apps/web/src/library/library-context.test.tsx`
 - Modify: `apps/web/src/App.tsx`
@@ -109,7 +118,10 @@ type LibraryContextValue = {
   deletePlaylist(id: string): Promise<void>
   addToPlaylist(playlistId: string, source: LibrarySource): Promise<void>
   removePlaylistItem(itemId: string): Promise<void>
-  reorderPlaylistItems(playlistId: string, ids: readonly string[]): Promise<void>
+  reorderPlaylistItems(
+    playlistId: string,
+    ids: readonly string[],
+  ): Promise<void>
   listPlaylistItems(playlistId: string): Promise<PlaylistItem[]>
   removeHistory(sourceKey: string): Promise<void>
   clearHistory(): Promise<void>
@@ -128,6 +140,7 @@ type LibraryContextValue = {
 ### Task 4: Functional history and playlists routes
 
 **Files:**
+
 - Create: `apps/web/src/components/HistoryLibrary.tsx`
 - Test: `apps/web/src/components/HistoryLibrary.test.tsx`
 - Create: `apps/web/src/components/PlaylistsLibrary.tsx`
@@ -150,6 +163,7 @@ type LibraryContextValue = {
 ### Task 5: Unified player library integration
 
 **Files:**
+
 - Create: `apps/web/src/library/playback-history-session.ts`
 - Test: `apps/web/src/library/playback-history-session.test.ts`
 - Create: `apps/web/src/components/LibrarySourceActions.tsx`
@@ -180,6 +194,7 @@ shouldRecordPlayback(
 ### Task 6: Replay coordination, docs, verification, and integration
 
 **Files:**
+
 - Modify: `apps/web/src/App.tsx`
 - Modify: `apps/web/src/components/RouteContent.tsx`
 - Modify: `apps/web/src/components/UnifiedPlayer.tsx`
@@ -193,24 +208,35 @@ shouldRecordPlayback(
 type PlayerOpenRequest = { id: number; source: LibrarySource }
 ```
 
-- [ ] **Step 1: Add failing replay test** proving History/Playlist `Oynat` sends the source into the same unified player path.
-- [ ] **Step 2: Implement request handoff**. `UnifiedPlayer` consumes each request once and derives player preference from `LibrarySource.kind` (`youtube`, `hls`, `direct-video`, `direct-audio`).
-- [ ] **Step 3: Update README** with P3 status, `livetv-library`, 200-entry history cap, device-local persistence, unavailable-storage behavior, and explicit no-auth/no-sync/no-resume boundaries.
-- [ ] **Step 4: Run full quality gate:** `npm run verify`, `git diff --check`, `docker compose config`.
-- [ ] **Step 5: Run Docker acceptance** and verify `/`, `/api/health`, `/media/health`, plus existing YouTube live resolver without printing secrets.
-- [ ] **Step 6: Run Chrome DevTools persistence acceptance:** play source -> history; favorite; create playlist/add source; hard reload; confirm all survive; clear history; confirm favorites/playlists remain; confirm no application console errors.
-- [ ] **Step 7: Mark evidence/checks in this plan and commit** with `chore: complete P3 guest local library milestone`.
+- [x] **Step 1: Add failing replay test** proving History/Playlist `Oynat` sends the source into the same unified player path.
+- [x] **Step 2: Implement request handoff**. `UnifiedPlayer` consumes each request once and derives player preference from `LibrarySource.kind` (`youtube`, `hls`, `direct-video`, `direct-audio`).
+- [x] **Step 3: Update README** with P3 status, `livetv-library`, 200-entry history cap, device-local persistence, unavailable-storage behavior, and explicit no-auth/no-sync/no-resume boundaries.
+- [x] **Step 4: Run full quality gate:** `npm run verify`, `git diff --check`, `docker compose config`.
+- [x] **Step 5: Run Docker acceptance** and verify `/`, `/api/health`, `/media/health`, plus existing YouTube live resolver without printing secrets.
+- [x] **Step 6: Run Chrome DevTools persistence acceptance:** play source -> history; favorite; create playlist/add source; hard reload; confirm all survive; clear history; confirm favorites/playlists remain; confirm no application console errors.
+- [x] **Step 7: Mark evidence/checks in this plan and commit** with `chore: complete P3 guest local library milestone`.
 - [ ] **Step 8: Push `feat/p3-guest-local-library`, open PR, wait for CI, fix actionable failures, merge when green, then fast-forward the normal local `main` checkout while preserving ignored `.env` secrets.**
 
 ## Exit Criteria
 
-- [ ] Successfully playing sources persist in history across reload.
-- [ ] Pause/resume does not repeatedly increment the same loaded-source history entry.
-- [ ] History retains at most 200 records.
-- [ ] Favorites persist and deduplicate.
-- [ ] Custom playlists support create, rename, delete, add/remove, and reorder.
-- [ ] `/history` and `/playlists` are functional.
-- [ ] History/playlist replay uses the existing unified player.
-- [ ] IndexedDB failure leaves playback functional.
-- [ ] No auth/server-sync/watch-progress dependency is introduced.
-- [ ] Full verification, Docker acceptance, and browser persistence acceptance pass.
+- [x] Successfully playing sources persist in history across reload.
+- [x] Pause/resume does not repeatedly increment the same loaded-source history entry.
+- [x] History retains at most 200 records.
+- [x] Favorites persist and deduplicate.
+- [x] Custom playlists support create, rename, delete, add/remove, and reorder.
+- [x] `/history` and `/playlists` are functional.
+- [x] History/playlist replay uses the existing unified player.
+- [x] IndexedDB failure leaves playback functional.
+- [x] No auth/server-sync/watch-progress dependency is introduced.
+- [x] Full verification, Docker acceptance, and browser persistence acceptance pass.
+
+## Verification Evidence
+
+- `npm run verify`: 26 test files / 85 tests passed; Prettier, ESLint, all-workspace TypeScript, builds, and direct dependency license policy passed. The existing HLS chunk-size warning remains non-fatal.
+- `git diff --check` and `docker compose config`: passed before final container acceptance.
+- Docker acceptance on the P3 worktree image: `/`, `/api/health`, and `/media/health` returned successfully; Halk TV resolved live through `discoveryMethod: data-api` with `officialApiAvailable: true`.
+- Chrome DevTools acceptance: Halk TV reached the real `Oynatılıyor` state, creating one `youtube:FmwMSdSLmQg` history row. Favorite and `P3 Test Listesi` playlist/item were persisted in `livetv-library`.
+- Hard reload preserved history/favorite/playlist/item as `1/1/1/1`. History and playlist `Oynat` actions each reopened the saved broadcast in the same UnifiedPlayer.
+- Clearing history changed IndexedDB counts to `history=0`, `favorites=1`, `playlists=1`, `playlistItems=1`; a later hard reload on the final image preserved those counts.
+- Final browser console inspection returned no application warnings or errors, and the rendered milestone badge reads `P3 / Guest local library`.
+- Repository regression coverage now also injects malformed IndexedDB rows and verifies valid history, favorite, playlist, and playlist-item data remains readable.

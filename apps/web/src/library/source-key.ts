@@ -2,9 +2,7 @@ import type { PlayerSource } from '@livetv/player-core'
 
 import type { LibrarySource } from './library-types'
 
-export function createSourceKey(
-  source: PlayerSource | LibrarySource,
-): string {
+export function createSourceKey(source: PlayerSource | LibrarySource): string {
   if ('sourceKey' in source) return source.sourceKey
 
   if (source.kind === 'youtube') {

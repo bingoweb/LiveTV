@@ -43,12 +43,8 @@ describe('library source identity', () => {
       url: 'https://example.com/media.bin',
     }
 
-    expect(createSourceKey(audio)).toBe(
-      'audio:https://example.com/media.bin',
-    )
-    expect(createSourceKey(video)).toBe(
-      'video:https://example.com/media.bin',
-    )
+    expect(createSourceKey(audio)).toBe('audio:https://example.com/media.bin')
+    expect(createSourceKey(video)).toBe('video:https://example.com/media.bin')
   })
 
   it('carries caller metadata into the library source', () => {

@@ -35,7 +35,10 @@ export function LibrarySourceActionsView({
     : false
 
   return (
-    <div className="library-source-actions" aria-label="Kaynağı kütüphaneye ekle">
+    <div
+      className="library-source-actions"
+      aria-label="Kaynağı kütüphaneye ekle"
+    >
       <button type="button" disabled={disabled} onClick={onToggleFavorite}>
         {favorite ? 'Favoriden çıkar' : 'Favoriye ekle'}
       </button>
@@ -83,7 +86,9 @@ export function LibrarySourceActionsView({
       </div>
 
       {library.status === 'unavailable' ? (
-        <small className="library-action-status">Kütüphane kullanılamıyor</small>
+        <small className="library-action-status">
+          Kütüphane kullanılamıyor
+        </small>
       ) : errorMessage ? (
         <small className="library-action-status" role="alert">
           {errorMessage}

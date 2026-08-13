@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Navigation } from './components/Navigation'
 import { RouteContent } from './components/RouteContent'
 import { SettingsShell } from './components/SettingsShell'
 import { UnifiedPlayer } from './components/UnifiedPlayer'
 import { LibraryProvider } from './library/library-context'
+import {
+  createPlayerOpenRequest,
+  type PlayerOpenRequest,
+} from './library/library-player-request'
+import type { LibrarySource } from './library/library-types'
 import { resolveRoute } from './navigation'
 
 type AppProps = {
@@ -19,6 +24,9 @@ function getInitialPath(initialPath?: string) {
 
 export function App({ initialPath }: AppProps) {
   const [pathname, setPathname] = useState(() => getInitialPath(initialPath))
+  const [playerOpenRequest, setPlayerOpenRequest] =
+    useState<PlayerOpenRequest | null>(null)
+  const playerRequestIdRef = useRef(0)
   const route = resolveRoute(pathname)
 
   useEffect(() => {
@@ -46,50 +54,63 @@ export function App({ initialPath }: AppProps) {
     setPathname(nextPath)
   }
 
+  const playLibrarySource = (source: LibrarySource) => {
+    const request = createPlayerOpenRequest(playerRequestIdRef.current, source)
+    playerRequestIdRef.current = request.id
+    setPlayerOpenRequest(request)
+  }
+
   return (
     <LibraryProvider>
       <div className="app-shell">
-      <a className="skip-link" href="#main-content">
-        İçeriğe geç
-      </a>
+        <a className="skip-link" href="#main-content">
+          İçeriğe geç
+        </a>
 
-      <Navigation activeRoute={route} onNavigate={navigate} />
+        <Navigation activeRoute={route} onNavigate={navigate} />
 
-      <div className="app-main-column">
-        <header className="topbar">
-          <div className="topbar-copy">
-            <span className="eyebrow">LiveTV</span>
-            <h1>{route.label}</h1>
-            <p>{route.description}</p>
-          </div>
+        <div className="app-main-column">
+          <header className="topbar">
+            <div className="topbar-copy">
+              <span className="eyebrow">LiveTV</span>
+              <h1>{route.label}</h1>
+              <p>{route.description}</p>
+            </div>
 
-          <div className="topbar-status" aria-label="Sistem durumu">
-            <span className="status-dot" aria-hidden="true" />
-            <span>Hazır</span>
-          </div>
-        </header>
+            <div className="topbar-status" aria-label="Sistem durumu">
+              <span className="status-dot" aria-hidden="true" />
+              <span>Hazır</span>
+            </div>
+          </header>
 
-        <main id="main-content" className="workspace" tabIndex={-1}>
-          <section
-            className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
-            aria-label={`${route.label} çalışma alanı`}
-          >
-            {route.id === 'settings' ? (
-              <SettingsShell />
-            ) : (
-              <>
-                <div className="context-column">
-                  <RouteContent route={route} onNavigate={navigate} />
-                </div>
+          <main id="main-content" className="workspace" tabIndex={-1}>
+            <section
+              className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
+              aria-label={`${route.label} çalışma alanı`}
+            >
+              {route.id === 'settings' ? (
+                <SettingsShell />
+              ) : (
+                <>
+                  <div className="context-column">
+                    <RouteContent
+                      route={route}
+                      onNavigate={navigate}
+                      onPlaySource={playLibrarySource}
+                    />
+                  </div>
 
-                <div className="player-column">
-                  <UnifiedPlayer route={route} />
-                </div>
-              </>
-            )}
-          </section>
-        </main>
-      </div>
+                  <div className="player-column">
+                    <UnifiedPlayer
+                      route={route}
+                      openRequest={playerOpenRequest}
+                    />
+                  </div>
+                </>
+              )}
+            </section>
+          </main>
+        </div>
       </div>
     </LibraryProvider>
   )

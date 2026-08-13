@@ -74,8 +74,8 @@ function DesktopNavigation({ activeRoute, onNavigate }: NavigationProps) {
         <div className="phase-card">
           <span className="phase-chip">{appMeta.phase}</span>
           <div>
-            <strong>Unified player</strong>
-            <small>Direct, HLS ve YouTube tek oynatıcı yüzeyinde.</small>
+            <strong>Guest local library</strong>
+            <small>Geçmiş, favoriler ve playlistler cihazda kalıcı.</small>
           </div>
         </div>
       </div>

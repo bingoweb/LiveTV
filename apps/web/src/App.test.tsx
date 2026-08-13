@@ -35,6 +35,8 @@ describe('App', () => {
     expect(markup).toContain('@ankahaberajans')
     expect(markup).toContain('YouTube Premium oturumunu kullan')
     expect(markup).toContain('Premium')
+    expect(markup).toContain('P3 oynatma + kütüphane hazır')
+    expect(markup).not.toContain('P2 oynatma hazır')
   })
 
   it('renders a dedicated settings shell', () => {
@@ -45,6 +47,8 @@ describe('App', () => {
     expect(markup).toContain('Başlangıç davranışı')
     expect(markup).toContain('Uygulama ve PWA')
     expect(markup).toContain('YouTube hesabı ve Premium')
+    expect(markup).toContain('P3’te')
+    expect(markup).not.toContain('P2’de')
     expect(markup).not.toContain('unified-player')
   })
 })

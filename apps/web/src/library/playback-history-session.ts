@@ -1,13 +1,7 @@
 import type { LibrarySource } from './library-types'
 
 export type PlaybackHistoryState =
-  | 'idle'
-  | 'loading'
-  | 'ready'
-  | 'playing'
-  | 'paused'
-  | 'ended'
-  | 'error'
+  'idle' | 'loading' | 'ready' | 'playing' | 'paused' | 'ended' | 'error'
 
 export function shouldRecordPlayback(
   previousRecordedSourceKey: string | null,
