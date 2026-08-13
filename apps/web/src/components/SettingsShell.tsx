@@ -88,9 +88,9 @@ export function SettingsShell() {
           <span className="eyebrow">Kişiselleştir</span>
           <h2>LiveTV sana göre çalışsın</h2>
           <p>
-            P2’de görünüm, başlangıç davranışı ve YouTube oturum tercihi
-            çalışır. Kalıcı hesap/guest senkronizasyonu sonraki veri fazında
-            eklenecek.
+            P3’te görünüm, başlangıç davranışı, YouTube oturum tercihi ve
+            cihazdaki guest kütüphanesi çalışır. Hesap ve cihazlar arası
+            senkronizasyon sonraki veri fazında eklenecek.
           </p>
         </div>
       </section>

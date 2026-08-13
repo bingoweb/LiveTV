@@ -6,8 +6,15 @@ import {
   type PlayerSource,
   type PlayerSourcePreference,
 } from '@livetv/player-core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useLibrary } from '../library/library-context'
+import {
+  playerPreferenceForLibrarySource,
+  type PlayerOpenRequest,
+} from '../library/library-player-request'
+import { shouldRecordPlayback } from '../library/playback-history-session'
+import { toLibrarySource } from '../library/library-types'
 import type { NavigationItem } from '../navigation'
 import {
   createBrowserAdapterFactories,
@@ -26,9 +33,11 @@ import {
   type LiveChannelStatus,
 } from '../youtube/live-channels'
 import { AppIcon } from './AppIcon'
+import { LibrarySourceActions } from './LibrarySourceActions'
 
 type UnifiedPlayerProps = {
   route: NavigationItem
+  openRequest?: PlayerOpenRequest | null
 }
 
 type PlayerUiState = 'idle' | BrowserPlayerState | 'error'
@@ -63,9 +72,15 @@ function errorMessage(error: unknown) {
   return 'Kaynak açılırken beklenmeyen bir hata oluştu.'
 }
 
-export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
+export function UnifiedPlayer({
+  route,
+  openRequest = null,
+}: UnifiedPlayerProps) {
+  const library = useLibrary()
   const hostRef = useRef<HTMLDivElement | null>(null)
   const controllerRef = useRef<PlayerController | null>(null)
+  const recordedLibrarySourceKeyRef = useRef<string | null>(null)
+  const consumedOpenRequestIdRef = useRef<number | null>(null)
   const [url, setUrl] = useState('')
   const [preference, setPreference] = useState<PlayerSourcePreference>('auto')
   const [youtubeEmbedMode, setYoutubeEmbedMode] =
@@ -80,6 +95,57 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
   const [qualities, setQualities] = useState<readonly PlayerQuality[]>([])
   const [selectedQuality, setSelectedQuality] = useState(-1)
   const [error, setError] = useState<string | null>(null)
+
+  const librarySource = useMemo(() => {
+    if (!source) return null
+
+    if (source.kind === 'youtube') {
+      const liveStatus = liveChannelStatuses.find(
+        (status): status is Extract<LiveChannelStatus, { status: 'live' }> =>
+          status.status === 'live' && status.videoId === source.videoId,
+      )
+      return toLibrarySource(source, {
+        title: liveStatus?.title ?? 'YouTube yayını',
+        ...(liveStatus?.thumbnailUrl
+          ? { thumbnailUrl: liveStatus.thumbnailUrl }
+          : {}),
+        ...(liveStatus?.channel.url
+          ? { channelUrl: liveStatus.channel.url }
+          : {}),
+      })
+    }
+
+    return toLibrarySource(source, {
+      title:
+        source.kind === 'hls'
+          ? 'HLS yayını'
+          : source.mediaType === 'audio'
+            ? 'Ses kaynağı'
+            : 'Video kaynağı',
+    })
+  }, [liveChannelStatuses, source])
+
+  useEffect(() => {
+    const decision = shouldRecordPlayback(
+      recordedLibrarySourceKeyRef.current,
+      state,
+      librarySource,
+    )
+
+    if (!librarySource) {
+      recordedLibrarySourceKeyRef.current = decision.nextRecordedSourceKey
+      return
+    }
+
+    if (decision.record && library.status !== 'ready') return
+
+    recordedLibrarySourceKeyRef.current = decision.nextRecordedSourceKey
+    if (decision.record) {
+      void library.recordPlayback(librarySource).catch(() => {
+        recordedLibrarySourceKeyRef.current = null
+      })
+    }
+  }, [library, librarySource, state])
 
   useEffect(() => {
     setYoutubeEmbedMode(readYouTubeEmbedMode())
@@ -206,6 +272,18 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
       setState('error')
     }
   }
+
+  useEffect(() => {
+    if (!openRequest || consumedOpenRequestIdRef.current === openRequest.id) {
+      return
+    }
+
+    consumedOpenRequestIdRef.current = openRequest.id
+    const nextPreference = playerPreferenceForLibrarySource(openRequest.source)
+    setUrl(openRequest.source.url)
+    setPreference(nextPreference)
+    void openSource(openRequest.source.url, nextPreference)
+  }, [openRequest])
 
   const togglePlayback = async () => {
     const controller = controllerRef.current
@@ -465,6 +543,8 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
         </div>
 
         <div className="unified-player-actions">
+          <LibrarySourceActions source={librarySource} />
+
           {source?.kind === 'youtube' ? (
             <a
               className="youtube-open-link"

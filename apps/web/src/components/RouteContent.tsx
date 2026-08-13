@@ -1,9 +1,13 @@
 import type { NavigationItem } from '../navigation'
+import type { LibrarySource } from '../library/library-types'
 import { AppIcon } from './AppIcon'
+import { HistoryLibrary } from './HistoryLibrary'
+import { PlaylistsLibrary } from './PlaylistsLibrary'
 
 type RouteContentProps = {
   route: NavigationItem
   onNavigate: (path: string) => void
+  onPlaySource?: (source: LibrarySource) => void
 }
 
 const sourceHints: Record<
@@ -12,7 +16,7 @@ const sourceHints: Record<
 > = {
   home: {
     title: 'Kaldığın yerden devam et',
-    hint: 'Son kaynaklar ve kişisel kütüphane P3 ile burada görünecek.',
+    hint: 'Son kaynaklara ve cihazındaki kişisel kütüphaneye geri dön.',
     action: 'Kaynak seç',
   },
   live: {
@@ -119,7 +123,7 @@ function HomeContent({ onNavigate }: Pick<RouteContentProps, 'onNavigate'>) {
 
 function SourceContent({ route }: { route: NavigationItem }) {
   const content = sourceHints[route.id]
-  const supportsP2Playback = ['live', 'youtube', 'iptv'].includes(route.id)
+  const supportsPlayback = ['live', 'youtube', 'iptv'].includes(route.id)
 
   const focusPlayerInput = () => {
     document.getElementById('player-source-url')?.focus()
@@ -139,11 +143,11 @@ function SourceContent({ route }: { route: NavigationItem }) {
         </div>
         <div className="source-entry-copy">
           <span className="source-status">
-            {supportsP2Playback ? 'P2 oynatma hazır' : 'Arayüz hazır'}
+            {supportsPlayback ? 'P3 oynatma + kütüphane hazır' : 'Arayüz hazır'}
           </span>
           <strong>{content.action}</strong>
           <p>
-            {supportsP2Playback
+            {supportsPlayback
               ? 'URL alanına geç; LiveTV kaynağı otomatik algılar veya motoru elle seçmene izin verir.'
               : 'Bu bölümün veri motoru ilgili yol haritası fazında bağlanacak.'}
           </p>
@@ -151,10 +155,10 @@ function SourceContent({ route }: { route: NavigationItem }) {
         <button
           className="primary-button"
           type="button"
-          disabled={!supportsP2Playback}
-          onClick={supportsP2Playback ? focusPlayerInput : undefined}
+          disabled={!supportsPlayback}
+          onClick={supportsPlayback ? focusPlayerInput : undefined}
         >
-          {supportsP2Playback ? 'Oynatıcıda aç' : 'Yakında'}
+          {supportsPlayback ? 'Oynatıcıda aç' : 'Yakında'}
         </button>
       </section>
 
@@ -178,7 +182,19 @@ function SourceContent({ route }: { route: NavigationItem }) {
   )
 }
 
-export function RouteContent({ route, onNavigate }: RouteContentProps) {
+export function RouteContent({
+  route,
+  onNavigate,
+  onPlaySource = () => {},
+}: RouteContentProps) {
+  if (route.id === 'history') {
+    return <HistoryLibrary onPlaySource={onPlaySource} />
+  }
+
+  if (route.id === 'playlists') {
+    return <PlaylistsLibrary onPlaySource={onPlaySource} />
+  }
+
   return (
     <aside
       className="context-panel"
