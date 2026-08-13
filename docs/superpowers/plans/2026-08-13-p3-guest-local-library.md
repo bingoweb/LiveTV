@@ -135,15 +135,15 @@ type LibraryContextValue = {
 - Modify: `apps/web/src/components/RouteContent.tsx`
 - Modify: `apps/web/src/styles.css`
 
-- [ ] **Step 1: Write failing History tests** for newest-first rendering, play-again callback, favorite toggle, single-row removal, clear history, and unavailable message.
-- [ ] **Step 2: Write failing Playlists tests** for favorites, create/rename/delete, item removal, up/down reorder, and unavailable message.
-- [ ] **Step 3: Run both component tests** and confirm RED.
-- [ ] **Step 4: Implement `/history` view** using existing card/button language; `Geçmişi temizle` touches only history.
-- [ ] **Step 5: Implement `/playlists` view** with Favorites plus custom playlists. Use explicit up/down buttons, not drag-and-drop. Do not add a Favorites navigation route.
-- [ ] **Step 6: Replace P3 placeholder copy** in `RouteContent`; route `history` and `playlists` to the new components.
-- [ ] **Step 7: Add minimal CSS** within existing theme/breakpoints; no visual redesign.
-- [ ] **Step 8: Run** focused tests and web typecheck; confirm PASS.
-- [ ] **Step 9: Commit** with `feat: add persistent history and playlist views`.
+- [x] **Step 1: Write failing History tests** for newest-first rendering, play-again callback, favorite toggle, single-row removal, clear history, and unavailable message.
+- [x] **Step 2: Write failing Playlists tests** for favorites, create/rename/delete, item removal, up/down reorder, and unavailable message.
+- [x] **Step 3: Run both component tests** and confirm RED.
+- [x] **Step 4: Implement `/history` view** using existing card/button language; `Geçmişi temizle` touches only history.
+- [x] **Step 5: Implement `/playlists` view** with Favorites plus custom playlists. Use explicit up/down buttons, not drag-and-drop. Do not add a Favorites navigation route.
+- [x] **Step 6: Replace P3 placeholder copy** in `RouteContent`; route `history` and `playlists` to the new components.
+- [x] **Step 7: Add minimal CSS** within existing theme/breakpoints; no visual redesign.
+- [x] **Step 8: Run** focused tests and web typecheck; confirm PASS.
+- [x] **Step 9: Commit** with `feat: add persistent history and playlist views`.
 
 ---
 

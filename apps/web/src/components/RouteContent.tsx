@@ -1,9 +1,13 @@
 import type { NavigationItem } from '../navigation'
+import type { LibrarySource } from '../library/library-types'
 import { AppIcon } from './AppIcon'
+import { HistoryLibrary } from './HistoryLibrary'
+import { PlaylistsLibrary } from './PlaylistsLibrary'
 
 type RouteContentProps = {
   route: NavigationItem
   onNavigate: (path: string) => void
+  onPlaySource?: (source: LibrarySource) => void
 }
 
 const sourceHints: Record<
@@ -12,7 +16,7 @@ const sourceHints: Record<
 > = {
   home: {
     title: 'Kaldığın yerden devam et',
-    hint: 'Son kaynaklar ve kişisel kütüphane P3 ile burada görünecek.',
+    hint: 'Son kaynaklara ve cihazındaki kişisel kütüphaneye geri dön.',
     action: 'Kaynak seç',
   },
   live: {
@@ -178,7 +182,19 @@ function SourceContent({ route }: { route: NavigationItem }) {
   )
 }
 
-export function RouteContent({ route, onNavigate }: RouteContentProps) {
+export function RouteContent({
+  route,
+  onNavigate,
+  onPlaySource = () => {},
+}: RouteContentProps) {
+  if (route.id === 'history') {
+    return <HistoryLibrary onPlaySource={onPlaySource} />
+  }
+
+  if (route.id === 'playlists') {
+    return <PlaylistsLibrary onPlaySource={onPlaySource} />
+  }
+
   return (
     <aside
       className="context-panel"
