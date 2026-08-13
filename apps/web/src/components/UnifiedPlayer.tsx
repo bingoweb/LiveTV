@@ -14,6 +14,7 @@ import {
   type BrowserPlayerState,
 } from '../player/browser-adapters'
 import type { YouTubeEmbedMode } from '../player/player-config'
+import { loadYouTubeChannelWithRecovery } from '../player/youtube-live-recovery'
 import {
   readYouTubeEmbedMode,
   writeYouTubeEmbedMode,
@@ -147,9 +148,13 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
     }
   }, [])
 
-  const resolveYouTubeChannelLive = async (input: string) => {
+  const resolveYouTubeChannelLive = async (
+    input: string,
+    options: { refresh?: boolean } = {},
+  ) => {
+    const refresh = options.refresh ? '&refresh=1' : ''
     const response = await fetch(
-      `/api/youtube/resolve-live?url=${encodeURIComponent(input)}`,
+      `/api/youtube/resolve-live?url=${encodeURIComponent(input)}${refresh}`,
     )
     const payload = (await response.json()) as LiveResolverResponse & {
       message?: string
@@ -188,11 +193,13 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
         requestedPreference === 'auto' || requestedPreference === 'youtube'
           ? parseYouTubeChannelReference(requestedUrl)
           : null
-      const playableUrl = channelReference
-        ? await resolveYouTubeChannelLive(requestedUrl)
-        : requestedUrl
-
-      const nextSource = await controller.load(playableUrl, requestedPreference)
+      const nextSource = channelReference
+        ? await loadYouTubeChannelWithRecovery(
+            requestedUrl,
+            resolveYouTubeChannelLive,
+            (playableUrl) => controller.load(playableUrl, requestedPreference),
+          )
+        : await controller.load(requestedUrl, requestedPreference)
       setSource(nextSource)
     } catch (caughtError) {
       setError(errorMessage(caughtError))
@@ -235,7 +242,7 @@ export function UnifiedPlayer({ route }: UnifiedPlayerProps) {
 
   const refreshFeaturedChannels = async () => {
     setLiveChannelRefreshPending(true)
-    const statuses = await loadFeaturedLiveStatuses()
+    const statuses = await loadFeaturedLiveStatuses(fetch, { refresh: true })
     setLiveChannelStatuses(statuses)
     setLiveChannelRefreshPending(false)
   }
