@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 
 import { App } from './App'
 import { registerServiceWorker } from './pwa/register-service-worker'
+import 'plyr/dist/plyr.css'
 import './styles.css'
 
 const rootElement = document.getElementById('root')

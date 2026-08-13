@@ -4,30 +4,41 @@ LiveTV is a browser-first media player project designed as a single interface fo
 
 ## Current status
 
-The repository is in **P1 — Responsive UI shell + PWA**. The project foundation is complete and the first real application shell now runs across desktop, tablet, phone portrait, and phone landscape layouts.
+The repository is in **P2 — Unified Player + YouTube + HLS + direct URL**. The responsive PWA shell from P1 is now connected to the first real playback engine.
 
-P1 currently includes:
+P2 currently includes:
 
 - desktop sidebar navigation and large player workspace,
 - tablet split layout with a compact navigation rail,
 - phone-first player layout with bottom navigation and a secondary bottom sheet,
 - route shells for Home, Live TV, YouTube, IPTV, Torrent, Playlists, TV Guide, History, and Settings,
-- a dedicated settings shell with working in-session theme and startup-mode controls,
+- one unified playback surface for direct HTTP(S) media, HLS, and YouTube,
+- Plyr controls with fullscreen and PiP where the browser/provider exposes them,
+- HLS.js playback with native-HLS fallback and manual quality choices when multiple levels are available,
+- automatic URL classification plus a manual source-engine selector for ambiguous/extensionless URLs,
+- lazy-loaded Plyr and HLS.js chunks so media engines do not inflate the initial application bundle,
+- YouTube video URL parsing and embedded playback with the current LiveTV origin,
+- YouTube channel/@handle live resolution through `/api/youtube/resolve-live`, so a channel URL can follow its current `/live` broadcast instead of storing one stale video ID,
+- built-in quick actions for `@Halktvkanali` and `@ankahaberajans`, including a clear offline state when a channel has no active live stream,
+- a YouTube Premium session mode that uses the normal `youtube.com` embed so the browser can reuse an existing signed-in YouTube/Premium session when allowed,
+- a privacy-enhanced YouTube mode using `youtube-nocookie.com`, selectable from the player or Settings,
+- a `YouTube’da aç` fallback for cases where the embedded player cannot reuse the signed-in session,
+- a dedicated settings shell with working in-session theme/startup controls and a persistent YouTube embed-mode preference,
 - semantic landmarks, skip navigation, keyboard focus states, reduced-motion support, and touch-friendly controls,
 - an installable Web App Manifest with 192 px and 512 px application icons,
 - a registered service worker with install/update plumbing,
 - application-shell/static-asset caching that explicitly excludes API and media traffic.
 
-Media engines are intentionally not connected in P1. Actual direct/HLS/YouTube playback begins in the next player phase; torrent streaming is implemented in its dedicated later roadmap phase.
+Torrent streaming, M3U playlist parsing/library persistence, authentication, and cross-device sync remain later roadmap phases.
 
 Current workspace boundaries:
 
 ```text
 apps/web                 React + Vite responsive PWA shell
-apps/api                 Fastify API service boundary
+apps/api                 Fastify API + YouTube live-channel resolver
 services/media-worker    Fastify media-worker boundary
 packages/shared          Shared service contracts
-packages/player-core     Reserved player-core package boundary
+packages/player-core     Source classifier + unified player controller contracts
 infra/reverse-proxy      Caddy development proxy
 ```
 
@@ -77,6 +88,25 @@ The normal browser entry point is Caddy:
 - Media worker health through Caddy: `http://localhost:8080/media/health`
 
 The stack also includes PostgreSQL 18 with a named development volume. Development-only defaults live in `.env.example`; copy them to a local `.env` only when you need overrides. `.env` files are ignored by Git.
+
+## Unified player
+
+Open any route that exposes the player and enter a source URL. The automatic classifier recognizes YouTube video URLs, `.m3u8` HLS manifests, common audio extensions, and direct web media. Extensionless or signed CDN URLs remain usable as direct video by default; the `Motor` selector can explicitly force HLS, YouTube, Video, or Audio when automatic detection is not enough.
+
+YouTube channel URLs such as:
+
+```text
+https://www.youtube.com/@Halktvkanali
+https://www.youtube.com/@ankahaberajans
+```
+
+are resolved to the channel's current `/live` target before playback. If there is no current live broadcast, LiveTV reports that state instead of reusing an old broadcast.
+
+### YouTube Premium session mode
+
+`YouTube oturumunu kullan` is enabled by default and can be changed from the player or Settings. In this mode LiveTV uses the normal `youtube.com` embed host. If the browser allows the embedded frame to see the user's existing signed-in YouTube session, YouTube can apply the account's Premium benefits. Browsers may block or partition cross-site session cookies, so LiveTV does not claim that Premium recognition can be guaranteed inside every embed. The `YouTube’da aç` action remains available as a reliable account-session fallback.
+
+The alternate privacy mode switches the embed back to `youtube-nocookie.com`.
 
 ## PWA behavior
 
@@ -137,6 +167,6 @@ The software license for LiveTV has **not yet been selected**. This repository b
 
 ## Roadmap boundary
 
-P1 does not implement the media engines. In particular, this phase does not add YouTube API access, downloads or recording, torrent download/archive behavior, seeding, anonymous server media proxying, or anonymous server torrent fallback.
+P2 does not implement torrent streaming, M3U playlist parsing, downloads or recording, torrent archival behavior, or seeding. It also does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
 
-The next roadmap step is **P2 — Unified Player + YouTube + HLS + direct URL**, which will replace the current player placeholder with the first real playback engine while preserving the responsive shell established in P1.
+P2 remains the active focus until YouTube live discovery/playback is technically solid. Responsive polish and the P3 account/library work are intentionally paused behind that blocker. The immediate work order is live-channel discovery, real playback-state verification, resilient retries/fallbacks, and source-switch cleanup.

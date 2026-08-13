@@ -17,17 +17,17 @@ const sourceHints: Record<
   },
   live: {
     title: 'Canlı yayın kaynağı',
-    hint: 'Canlı yayın bağlantıların ve favori kanalların burada toplanacak.',
+    hint: 'HLS veya doğrudan canlı yayın URL’sini unified player’a gönder.',
     action: 'Canlı kaynak ekle',
   },
   youtube: {
     title: 'YouTube bağlantısı',
-    hint: 'Bir video veya canlı yayın URL’si ekleyerek oynatıcıya gönderebileceksin.',
+    hint: 'Video URL’sini veya kanal @handle adresini unified player’da aç.',
     action: 'YouTube bağlantısı ekle',
   },
   iptv: {
     title: 'M3U / M3U8 listesi',
-    hint: 'Kanal listeleri, gruplar ve logolar bu alanda yönetilecek.',
+    hint: 'Tek HLS yayın URL’si şimdi açılır; M3U kanal listeleri P4’te gelecek.',
     action: 'IPTV listesi ekle',
   },
   torrent: {
@@ -119,6 +119,11 @@ function HomeContent({ onNavigate }: Pick<RouteContentProps, 'onNavigate'>) {
 
 function SourceContent({ route }: { route: NavigationItem }) {
   const content = sourceHints[route.id]
+  const supportsP2Playback = ['live', 'youtube', 'iptv'].includes(route.id)
+
+  const focusPlayerInput = () => {
+    document.getElementById('player-source-url')?.focus()
+  }
 
   return (
     <>
@@ -133,15 +138,23 @@ function SourceContent({ route }: { route: NavigationItem }) {
           <AppIcon name={route.icon} size={27} />
         </div>
         <div className="source-entry-copy">
-          <span className="source-status">Arayüz hazır</span>
+          <span className="source-status">
+            {supportsP2Playback ? 'P2 oynatma hazır' : 'Arayüz hazır'}
+          </span>
           <strong>{content.action}</strong>
           <p>
-            Kaynak motoru bağlandığında bu kart gerçek giriş ve doğrulama
-            alanına dönüşecek.
+            {supportsP2Playback
+              ? 'URL alanına geç; LiveTV kaynağı otomatik algılar veya motoru elle seçmene izin verir.'
+              : 'Bu bölümün veri motoru ilgili yol haritası fazında bağlanacak.'}
           </p>
         </div>
-        <button className="primary-button" type="button" disabled>
-          Yakında
+        <button
+          className="primary-button"
+          type="button"
+          disabled={!supportsP2Playback}
+          onClick={supportsP2Playback ? focusPlayerInput : undefined}
+        >
+          {supportsP2Playback ? 'Oynatıcıda aç' : 'Yakında'}
         </button>
       </section>
 

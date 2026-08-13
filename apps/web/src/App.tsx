@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 
 import { Navigation } from './components/Navigation'
-import { PlayerPlaceholder } from './components/PlayerPlaceholder'
 import { RouteContent } from './components/RouteContent'
 import { SettingsShell } from './components/SettingsShell'
+import { UnifiedPlayer } from './components/UnifiedPlayer'
 import { resolveRoute } from './navigation'
 
 type AppProps = {
@@ -81,7 +81,7 @@ export function App({ initialPath }: AppProps) {
                 </div>
 
                 <div className="player-column">
-                  <PlayerPlaceholder route={route} />
+                  <UnifiedPlayer route={route} />
                 </div>
               </>
             )}

@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 
+import type { YouTubeEmbedMode } from '../player/player-config'
+import {
+  readYouTubeEmbedMode,
+  writeYouTubeEmbedMode,
+  YOUTUBE_EMBED_MODE_EVENT,
+} from '../player/youtube-session'
 import { AppIcon } from './AppIcon'
 import { PwaStatus } from './PwaStatus'
 
@@ -37,6 +43,20 @@ const startupOptions: readonly {
 export function SettingsShell() {
   const [theme, setTheme] = useState<ThemeMode>('system')
   const [startup, setStartup] = useState<StartupMode>('home')
+  const [youtubeEmbedMode, setYoutubeEmbedMode] =
+    useState<YouTubeEmbedMode>('premium-session')
+
+  useEffect(() => {
+    setYoutubeEmbedMode(readYouTubeEmbedMode())
+
+    const handleModeChange = (event: Event) => {
+      setYoutubeEmbedMode((event as CustomEvent<YouTubeEmbedMode>).detail)
+    }
+
+    window.addEventListener(YOUTUBE_EMBED_MODE_EVENT, handleModeChange)
+    return () =>
+      window.removeEventListener(YOUTUBE_EMBED_MODE_EVENT, handleModeChange)
+  }, [])
 
   useEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') return
@@ -68,8 +88,9 @@ export function SettingsShell() {
           <span className="eyebrow">Kişiselleştir</span>
           <h2>LiveTV sana göre çalışsın</h2>
           <p>
-            P1’de görünüm ve oturum içi başlangıç tercihleri çalışır. Kalıcı
-            hesap/guest senkronizasyonu sonraki veri fazında eklenecek.
+            P2’de görünüm, başlangıç davranışı ve YouTube oturum tercihi
+            çalışır. Kalıcı hesap/guest senkronizasyonu sonraki veri fazında
+            eklenecek.
           </p>
         </div>
       </section>
@@ -136,6 +157,59 @@ export function SettingsShell() {
               </label>
             ))}
           </fieldset>
+        </section>
+
+        <section className="settings-card settings-card--wide youtube-account-settings">
+          <div className="settings-section-heading">
+            <span className="settings-section-icon" aria-hidden="true">
+              ▶
+            </span>
+            <div>
+              <h3>YouTube hesabı ve Premium</h3>
+              <p>
+                Tarayıcıdaki mevcut YouTube oturumunu embed oynatıcıyla
+                paylaşmayı dene. Premium üyelik oturum tarafından tanınırsa
+                YouTube reklamları gösterilmez.
+              </p>
+            </div>
+          </div>
+
+          <div className="youtube-account-mode-row">
+            <div>
+              <span className="source-status">Önerilen</span>
+              <strong>YouTube oturumunu kullan</strong>
+              <small>
+                Normal youtube.com embed kullanılır. Tarayıcı üçüncü taraf
+                oturum çerezlerini engelliyorsa Premium tanınmayabilir; bu
+                durumda oynatıcı içindeki “YouTube’da aç” bağlantısını
+                kullanabilirsin.
+              </small>
+            </div>
+
+            <label className="settings-toggle">
+              <input
+                id="settings-youtube-premium-session"
+                name="settings-youtube-premium-session"
+                type="checkbox"
+                checked={youtubeEmbedMode === 'premium-session'}
+                onChange={(event) => {
+                  const mode: YouTubeEmbedMode = event.target.checked
+                    ? 'premium-session'
+                    : 'privacy'
+                  setYoutubeEmbedMode(mode)
+                  writeYouTubeEmbedMode(mode)
+                }}
+              />
+              <span className="toggle-track" aria-hidden="true">
+                <span />
+              </span>
+              <span>
+                {youtubeEmbedMode === 'premium-session'
+                  ? 'Açık'
+                  : 'Gizlilik modu'}
+              </span>
+            </label>
+          </div>
         </section>
 
         <section className="settings-card settings-card--wide">

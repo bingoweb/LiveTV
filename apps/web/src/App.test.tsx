@@ -12,7 +12,9 @@ describe('App', () => {
     expect(markup).toContain('aria-label="Ana navigasyon"')
     expect(markup).toContain('class="mobile-bottom-nav"')
     expect(markup).toContain('Ne izlemek istersin?')
-    expect(markup).toContain('Kaynak seçildiğinde oynatıcı burada açılacak')
+    expect(markup).toContain('unified-player')
+    expect(markup).toContain('Medya URL’si')
+    expect(markup).toContain('Kaynağı aç')
   })
 
   it('renders route-specific context without changing the player shell', () => {
@@ -21,7 +23,18 @@ describe('App', () => {
     expect(markup).toContain('Torrent')
     expect(markup).toContain('Magnet bağlantısı')
     expect(markup).toContain('aria-current="page"')
-    expect(markup).toContain('Kaynak seçildiğinde oynatıcı burada açılacak')
+    expect(markup).toContain('unified-player')
+  })
+
+  it('exposes featured live YouTube channels and Premium session support', () => {
+    const markup = renderToStaticMarkup(<App initialPath="/youtube" />)
+
+    expect(markup).toContain('Halk TV')
+    expect(markup).toContain('@Halktvkanali')
+    expect(markup).toContain('ANKA Haber')
+    expect(markup).toContain('@ankahaberajans')
+    expect(markup).toContain('YouTube Premium oturumunu kullan')
+    expect(markup).toContain('Premium')
   })
 
   it('renders a dedicated settings shell', () => {
@@ -31,6 +44,7 @@ describe('App', () => {
     expect(markup).toContain('Görünüm ve tema')
     expect(markup).toContain('Başlangıç davranışı')
     expect(markup).toContain('Uygulama ve PWA')
-    expect(markup).not.toContain('Kaynak seçildiğinde oynatıcı burada açılacak')
+    expect(markup).toContain('YouTube hesabı ve Premium')
+    expect(markup).not.toContain('unified-player')
   })
 })
