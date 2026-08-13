@@ -32,9 +32,9 @@
 - Consumes: `PlayerSource` from `@livetv/player-core`.
 - Produces: `LibrarySource`, `LibrarySourceKind`, `createSourceKey()`, `toLibrarySource()`.
 
-- [ ] **Step 1: Write failing tests** for YouTube ID identity, HLS/direct URL identity, fragment removal, query preservation, and direct audio/video distinction.
-- [ ] **Step 2: Run** `npx vitest run apps/web/src/library/source-key.test.ts` and confirm RED because implementation is missing.
-- [ ] **Step 3: Implement source mapping** with these exact rules:
+- [x] **Step 1: Write failing tests** for YouTube ID identity, HLS/direct URL identity, fragment removal, query preservation, and direct audio/video distinction.
+- [x] **Step 2: Run** `npx vitest run apps/web/src/library/source-key.test.ts` and confirm RED because implementation is missing.
+- [x] **Step 3: Implement source mapping** with these exact rules:
 
 ```ts
 youtube -> `youtube:${source.videoId}`
@@ -45,8 +45,8 @@ direct video -> `video:${normalizedUrl}`
 
 `normalizedUrl` must clear URL fragments and preserve query parameters. `LibrarySource` contains `sourceKey`, `url`, `kind`, `title`, optional `thumbnailUrl`, and optional `channelUrl`.
 
-- [ ] **Step 4: Run** focused tests plus `npm run typecheck --workspace @livetv/web` and confirm PASS.
-- [ ] **Step 5: Commit** with `feat: define local library source identity`.
+- [x] **Step 4: Run** focused tests plus `npm run typecheck --workspace @livetv/web` and confirm PASS.
+- [x] **Step 5: Commit** with `feat: define local library source identity`.
 
 ---
 
