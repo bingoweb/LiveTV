@@ -168,14 +168,14 @@ export async function createIptvRepository(options?: {
 }): Promise<IptvRepository>
 ```
 
-- [ ] **Step 1: Write repository RED tests** using `fake-indexeddb/auto`. Cover import/reload persistence, channel order, multiple-list isolation, delete cascade, malformed persisted-row filtering, and source metadata preservation.
-- [ ] **Step 2: Add a transaction-abort test for `replaceList()`**: inject a test database state, cause a replacement write to reject, and assert the previous list/channels still read back unchanged.
-- [ ] **Step 3: Run** `npx vitest run apps/web/src/iptv/iptv-repository.test.ts` and confirm RED because repository modules do not exist.
-- [ ] **Step 4: Implement `livetv-iptv` version 1 schema** with `lists` and `channels` stores plus `listId`, `[listId, groupTitle]`, and `[listId, position]` indexes. Use deterministic channel IDs derived from list ID + `tvg-id` + stream URL; keep `position` separate.
-- [ ] **Step 5: Implement repository operations**. `replaceList()` must delete old channel rows and write replacement rows in the same `readwrite` transaction as the list metadata update so abort preserves the previous transaction state.
-- [ ] **Step 6: Add strict read guards** for list/channel rows; malformed rows are skipped rather than thrown to consumers.
-- [ ] **Step 7: Run repository tests**, web typecheck, and `npm run licenses:check`; confirm PASS with no new runtime package.
-- [ ] **Step 8: Commit** with `feat: add persistent IPTV repository`.
+- [x] **Step 1: Write repository RED tests** using `fake-indexeddb/auto`. Cover import/reload persistence, channel order, multiple-list isolation, delete cascade, malformed persisted-row filtering, and source metadata preservation.
+- [x] **Step 2: Add a transaction-abort test for `replaceList()`**: inject a test database state, cause a replacement write to reject, and assert the previous list/channels still read back unchanged.
+- [x] **Step 3: Run** `npx vitest run apps/web/src/iptv/iptv-repository.test.ts` and confirm RED because repository modules do not exist.
+- [x] **Step 4: Implement `livetv-iptv` version 1 schema** with `lists` and `channels` stores plus `listId`, `[listId, groupTitle]`, and `[listId, position]` indexes. Use deterministic channel IDs derived from list ID + `tvg-id` + stream URL; keep `position` separate.
+- [x] **Step 5: Implement repository operations**. `replaceList()` must delete old channel rows and write replacement rows in the same `readwrite` transaction as the list metadata update so abort preserves the previous transaction state.
+- [x] **Step 6: Add strict read guards** for list/channel rows; malformed rows are skipped rather than thrown to consumers.
+- [x] **Step 7: Run repository tests**, web typecheck, and `npm run licenses:check`; confirm PASS with no new runtime package. Evidence: 6/6 repository tests, web typecheck exit 0, license policy passes 19 dependencies.
+- [x] **Step 8: Commit** with `feat: add persistent IPTV repository`.
 
 ---
 
