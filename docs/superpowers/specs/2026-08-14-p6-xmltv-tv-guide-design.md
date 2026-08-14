@@ -182,6 +182,8 @@ type ParsedXmltv = {
 
 Malformed individual channels/programmes are non-fatal warnings when valid guide data remains. An XML document that cannot be parsed at all, has no valid channels/programmes, or exceeds limits is a fetch/import failure and must not replace an existing valid cache.
 
+For P6 a usable XMLTV source must contain at least one valid `<channel>` and at least one valid `<programme>`. A syntactically valid but empty `<tv/>` document therefore counts as a failed source rather than a successful empty refresh.
+
 ## XMLTV date/time parsing
 
 Support common XMLTV timestamps including:
@@ -201,6 +203,8 @@ Programmes with missing/invalid start times are skipped. A missing or invalid st
 ## Channel matching
 
 Matching is list-specific. P6 must never silently bind one XMLTV channel to multiple IPTV channels using a fuzzy heuristic.
+
+When a playlist declares several EPG sources, matching is evaluated **independently per EPG source** and the matched source-specific XMLTV channels are combined for the IPTV channel. This allows one provider feed to match by exact `tvg-id` while another feed for the same IPTV channel uses its own unique display-name identity. The strongest match reason is kept for UI diagnostics; programme merging still follows persisted source priority.
 
 Priority:
 
@@ -316,6 +320,8 @@ When `/guide` opens or the active IPTV list changes:
 - a failed refresh retains and continues rendering stale cache with a visible warning and last-updated time.
 
 Do not refresh every IPTV list automatically. Only the selected Guide list is refreshed.
+
+While `/guide` is mounted, the controller re-derives clock-sensitive `Şimdi`, `Sıradaki`, and progress state once per minute from the already-cached programme rows. This tick does not trigger network or IndexedDB writes.
 
 When the current combined cache was imported from a local XMLTV file, background freshness refresh does **not** silently switch back to playlist-declared URLs. The UI instead exposes **URL'lerden yenile** when declared EPG URLs exist; that explicit action switches the list back to URL-backed EPG mode. A local file cannot be automatically reread later because LiveTV does not persist a filesystem handle.
 

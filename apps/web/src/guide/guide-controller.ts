@@ -327,6 +327,11 @@ export class GuideController {
     this.snapshot = { ...this.snapshot, selectedDate: dateKey }
     this.emit(this.snapshotFromCache(this.cache))
   }
+
+  tick() {
+    if (!this.initialized || this.snapshot.status !== 'ready') return
+    this.emit(this.snapshotFromCache(this.cache))
+  }
 }
 
 export function createGuideController(

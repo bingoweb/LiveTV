@@ -21,4 +21,14 @@ describe('LiveTV responsive CSS regressions', () => {
       'grid-template-columns: minmax(0, 1fr)',
     )
   })
+
+  it('keeps the seven-day guide strip horizontally scrollable and guide rows shrink-safe', () => {
+    const css = readFileSync('apps/web/src/styles.css', 'utf8')
+
+    expect(css).toMatch(/\.guide-date-strip\s*\{[^}]*overflow-x:\s*auto;/s)
+    expect(css).toMatch(/\.guide-channel-row\s*\{[^}]*min-width:\s*0;/s)
+    expect(css).toMatch(
+      /@media \(max-width: 768px\)[\s\S]*?\.guide-now-next\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s,
+    )
+  })
 })

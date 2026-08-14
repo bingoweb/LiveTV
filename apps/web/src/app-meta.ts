@@ -1,5 +1,5 @@
 export const appMeta = {
   name: 'LiveTV',
-  phase: 'P5',
+  phase: 'P6',
   tagline: 'Tüm yayınların tek ekranı',
 } as const

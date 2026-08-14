@@ -88,9 +88,9 @@ export function SettingsShell() {
           <span className="eyebrow">Kişiselleştir</span>
           <h2>LiveTV sana göre çalışsın</h2>
           <p>
-            P5’te görünüm, başlangıç davranışı, YouTube oturum tercihi,
-            cihazdaki guest kütüphanesi, IPTV/M3U kütüphanesi ve Browser
-            WebTorrent çalışma alanı çalışır. Hesap ve cihazlar arası
+            P6’da görünüm, başlangıç davranışı, YouTube oturum tercihi,
+            cihazdaki guest kütüphanesi, IPTV/M3U kütüphanesi, XMLTV TV rehberi
+            ve Browser WebTorrent çalışma alanı çalışır. Hesap ve cihazlar arası
             senkronizasyon sonraki veri fazında eklenecek.
           </p>
         </div>

@@ -32,7 +32,17 @@ describe('App', () => {
 
     expect(markup).toContain('IPTV kütüphanesi yükleniyor')
     expect(markup).not.toContain('M3U kanal listeleri P4’te gelecek')
-    expect(markup).toContain('Browser WebTorrent')
+    expect(markup).toContain('XMLTV TV Guide')
+    expect(markup).toContain('unified-player')
+  })
+
+  it('renders the functional TV guide route instead of the XMLTV placeholder', () => {
+    const markup = renderToStaticMarkup(<App initialPath="/guide" />)
+
+    expect(markup).toContain('TV rehberi yükleniyor')
+    expect(markup).not.toContain(
+      'XMLTV verisi bağlandığında şimdi ve sıradaki programlar burada görünecek.',
+    )
     expect(markup).toContain('unified-player')
   })
 
@@ -45,7 +55,8 @@ describe('App', () => {
     expect(markup).toContain('@ankahaberajans')
     expect(markup).toContain('YouTube Premium oturumunu kullan')
     expect(markup).toContain('Premium')
-    expect(markup).toContain('P5 oynatma + kütüphane hazır')
+    expect(markup).toContain('P6 oynatma + kütüphane hazır')
+    expect(markup).not.toContain('P5 oynatma + kütüphane hazır')
     expect(markup).not.toContain('P4 oynatma + kütüphane hazır')
     expect(markup).not.toContain('P3 oynatma + kütüphane hazır')
     expect(markup).not.toContain('P2 oynatma hazır')
@@ -59,7 +70,8 @@ describe('App', () => {
     expect(markup).toContain('Başlangıç davranışı')
     expect(markup).toContain('Uygulama ve PWA')
     expect(markup).toContain('YouTube hesabı ve Premium')
-    expect(markup).toContain('P5’te')
+    expect(markup).toContain('P6’da')
+    expect(markup).not.toContain('P5’te')
     expect(markup).not.toContain('P4’te')
     expect(markup).not.toContain('P3’te')
     expect(markup).not.toContain('P2’de')

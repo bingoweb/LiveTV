@@ -50,7 +50,7 @@ export function extractM3uEpgUrls(text: string, baseUrl?: string) {
   for (const key of ['url-tvg', 'x-tvg-url', 'tvg-url']) {
     const raw = attributes.get(key)
     if (!raw) continue
-    for (const candidate of raw.split(',').map((value) => value.trim())) {
+    for (const candidate of raw.split(/[,\s]+/).map((value) => value.trim())) {
       const normalized = normalizeHttpUrl(candidate, baseUrl)
       if (!normalized || seen.has(normalized)) continue
       seen.add(normalized)

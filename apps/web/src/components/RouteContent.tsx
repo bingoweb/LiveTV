@@ -4,6 +4,7 @@ import type { LibrarySource } from '../library/library-types'
 import type { TorrentPlaybackDescriptor } from '../torrent/torrent-controller'
 import type { TorrentReplayRequest } from '../torrent/torrent-replay'
 import { AppIcon } from './AppIcon'
+import { GuideWorkspace } from './GuideWorkspace'
 import { HistoryLibrary } from './HistoryLibrary'
 import { IptvLibrary } from './IptvLibrary'
 import { PlaylistsLibrary } from './PlaylistsLibrary'
@@ -54,7 +55,7 @@ const sourceHints: Record<
   },
   guide: {
     title: 'TV rehberi',
-    hint: 'XMLTV verisi bağlandığında şimdi ve sıradaki programlar burada görünecek.',
+    hint: 'XMLTV program akışını şimdi, sıradaki ve yedi günlük görünümde incele.',
     action: 'Rehberi aç',
   },
   history: {
@@ -151,7 +152,7 @@ function SourceContent({ route }: { route: NavigationItem }) {
         </div>
         <div className="source-entry-copy">
           <span className="source-status">
-            {supportsPlayback ? 'P5 oynatma + kütüphane hazır' : 'Arayüz hazır'}
+            {supportsPlayback ? 'P6 oynatma + kütüphane hazır' : 'Arayüz hazır'}
           </span>
           <strong>{content.action}</strong>
           <p>
@@ -217,6 +218,10 @@ export function RouteContent({
         replayRequest={torrentReplayRequest}
       />
     )
+  }
+
+  if (route.id === 'guide') {
+    return <GuideWorkspace onPlayChannel={onPlayIptvChannel} />
   }
 
   return (

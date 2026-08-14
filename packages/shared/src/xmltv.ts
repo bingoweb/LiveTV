@@ -221,6 +221,9 @@ export function parseXmltv(
 ): ParsedXmltv {
   const document = parser.parse(xml) as Record<string, unknown>
   const tv = document.tv
+  if (tv === '' || tv === true) {
+    return { channels: [], programmes: [], warnings: [] }
+  }
   if (typeof tv !== 'object' || tv === null) {
     throw new Error('XMLTV kök <tv> öğesi bulunamadı.')
   }

@@ -78,6 +78,25 @@ describe('EPG browser fetch service', () => {
     )
   })
 
+  it('treats XML without usable channels/programmes as a failed direct source and falls back', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response('<tv/>', { status: 200 }))
+    const apiFetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response(XML, { status: 200 }))
+
+    const result = await fetchGuideFromUrls({
+      list: list({ epgUrls: ['https://provider.example/one.xml'] }),
+      fetchImpl,
+      apiFetchImpl,
+    })
+
+    expect(result.sources).toHaveLength(1)
+    expect(result.sources[0]?.parsed.programmes[0]?.title).toBe('News Hour')
+    expect(apiFetchImpl).toHaveBeenCalledOnce()
+  })
+
   it('never invokes API fallback for file/paste IPTV lists', async () => {
     const fetchImpl = vi.fn().mockRejectedValue(new TypeError('CORS blocked'))
     const apiFetchImpl = vi.fn()
@@ -135,6 +154,14 @@ describe('local XMLTV file import', () => {
     expect(result.mode).toBe('file')
     expect(result.sources).toHaveLength(1)
     expect(result.sources[0]?.parsed.channels[0]?.id).toBe('news')
+  })
+
+  it('rejects a local XML document that contains no usable guide data', async () => {
+    const file = new File(['<tv/>'], 'empty.xml', { type: 'application/xml' })
+
+    await expect(importGuideFile(file)).rejects.toThrow(
+      'kullanılabilir kanal ve program içermiyor',
+    )
   })
 
   it('detects gzip by magic bytes regardless of filename', async () => {

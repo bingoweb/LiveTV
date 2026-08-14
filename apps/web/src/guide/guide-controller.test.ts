@@ -284,4 +284,32 @@ describe('GuideController', () => {
       selectedDate: '2026-08-15',
     })
   })
+
+  it('re-derives now/next state when the guide clock ticks', async () => {
+    const initial = cache('url', NOW - 1)
+    initial.programmes.push({
+      id: 'later',
+      sourceKey: 'source',
+      xmltvChannelId: 'news',
+      startAt: NOW + 30 * 60_000,
+      stopAt: NOW + 90 * 60_000,
+      title: 'Later',
+      categories: [],
+    })
+    let clock = NOW
+    const fixture = dependencies(initial)
+    fixture.deps.now = () => clock
+    const controller = new GuideController(fixture.deps)
+    await controller.initialize({
+      lists: [iptvList],
+      activeListId: iptvList.id,
+      channels: [iptvChannel],
+    })
+
+    expect(controller.getSnapshot().channels[0]?.current?.title).toBe('Cached')
+    clock = NOW + 45 * 60_000
+    controller.tick()
+
+    expect(controller.getSnapshot().channels[0]?.current?.title).toBe('Later')
+  })
 })

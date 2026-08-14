@@ -62,7 +62,11 @@ async function parseXmltvResponse(
       ? { decompressionStreamFactory: options.decompressionStreamFactory }
       : {}),
   })
-  return parseXmltv(xml)
+  const parsed = parseXmltv(xml)
+  if (parsed.channels.length === 0 || parsed.programmes.length === 0) {
+    throw new EpgFetchError('XMLTV kullanılabilir kanal ve program içermiyor.')
+  }
+  return parsed
 }
 
 async function directSource(
@@ -192,6 +196,9 @@ export async function importGuideFile(
       : {}),
   })
   const parsed = parseXmltv(xml)
+  if (parsed.channels.length === 0 || parsed.programmes.length === 0) {
+    throw new EpgFetchError('XMLTV kullanılabilir kanal ve program içermiyor.')
+  }
   return {
     mode: 'file',
     sources: [{ parsed }],

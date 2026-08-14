@@ -23,6 +23,14 @@ describe('extractM3uEpgUrls', () => {
     ).toEqual(['https://iptv.example/lists/guide.xml'])
   })
 
+  it('accepts whitespace-separated EPG URL lists inside one header attribute', () => {
+    expect(
+      extractM3uEpgUrls(
+        '#EXTM3U url-tvg="https://epg.example/a.xml https://epg.example/b.xml"',
+      ),
+    ).toEqual(['https://epg.example/a.xml', 'https://epg.example/b.xml'])
+  })
+
   it('ignores malformed, unsupported, and relative values without a base URL', () => {
     expect(
       extractM3uEpgUrls(

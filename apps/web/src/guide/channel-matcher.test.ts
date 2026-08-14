@@ -46,6 +46,24 @@ describe('IPTV ↔ XMLTV channel matcher', () => {
     )
   })
 
+  it('can match one IPTV channel independently in each EPG source', () => {
+    const matches = matchIptvChannelsToXmltv(
+      [iptv('c1', 'News', { tvgId: 'news.tr' })],
+      [epg('s1', 'news.tr', ['News']), epg('s2', 'provider-news', ['News'])],
+    )
+
+    expect(matches[0]).toMatchObject({ match: 'exact-id' })
+    expect(
+      matches[0]?.xmltvChannels.map(({ sourceKey, xmltvId }) => ({
+        sourceKey,
+        xmltvId,
+      })),
+    ).toEqual([
+      { sourceKey: 's1', xmltvId: 'news.tr' },
+      { sourceKey: 's2', xmltvId: 'provider-news' },
+    ])
+  })
+
   it('uses folded id only when the normalized XMLTV id is unique', () => {
     const unique = matchIptvChannelsToXmltv(
       [iptv('c1', 'News', { tvgId: 'NEWS.TR' })],
@@ -55,7 +73,7 @@ describe('IPTV ↔ XMLTV channel matcher', () => {
 
     const ambiguous = matchIptvChannelsToXmltv(
       [iptv('c1', 'News', { tvgId: 'NEWS.TR' })],
-      [epg('s1', 'news.tr', ['News']), epg('s2', 'News.Tr', ['News'])],
+      [epg('s1', 'news.tr', ['News']), epg('s1', 'News.Tr', ['News'])],
     )
     expect(ambiguous[0]?.match).toBe('none')
   })

@@ -139,7 +139,7 @@ expect(parsed.programmes[0]).toMatchObject({
 
 - [x] **Step 10: Run `npm run licenses:check`**. Evidence: `fast-xml-parser@5.10.1 — MIT`; license policy passes 21 direct dependencies and `npm install` reported no current vulnerabilities in the updated graph.
 
-- [ ] **Step 11: Commit** with `feat: add shared XMLTV parsing`.
+- [x] **Step 11: Commit** with `feat: add shared XMLTV parsing`. Commit: `4b2eb40`.
 
 ---
 
@@ -246,7 +246,7 @@ await expect(
 
 - [x] **Step 11: Run API tests and API typecheck.** Evidence: 28/28 focused tests pass across public HTTP, EPG fallback, YouTube live resolver, and Compose regression; API typecheck exits 0 and `docker compose config` passes.
 
-- [ ] **Step 12: Commit** with `feat: add verified XMLTV fallback endpoint`.
+- [x] **Step 12: Commit** with `feat: add verified XMLTV fallback endpoint`. Commit: `c565ac9`.
 
 ---
 
@@ -328,7 +328,7 @@ export type ChannelGuideMatch = {
 
 - [x] **Step 8: Run repository/matcher/derivation tests and web typecheck.** Evidence: 13/13 focused tests pass and web typecheck exits 0. During the first run, a hanging readonly transaction exposed a DB-lifecycle mismatch versus P4; the repository was corrected to open/close per operation and attach completion listeners before requests.
 
-- [ ] **Step 9: Commit** with `feat: add persistent EPG guide cache`.
+- [x] **Step 9: Commit** with `feat: add persistent EPG guide cache`. Commit: `571f394`.
 
 ---
 
@@ -391,7 +391,7 @@ export async function importGuideFile(file: File): Promise<EpgFetchResult>
 
 - [x] **Step 8: Run fetch/payload tests and web typecheck.** Evidence: 13/13 focused tests pass and web typecheck exits 0.
 
-- [ ] **Step 9: Commit** with `feat: add XMLTV fetch and import service`.
+- [x] **Step 9: Commit** with `feat: add XMLTV fetch and import service`. Commit: `d518b9c`.
 
 ---
 
@@ -441,6 +441,7 @@ export class GuideController {
   }): Promise<void>
   importFile(file: File): Promise<void>
   selectDate(dateKey: string): void
+  tick(): void
 }
 ```
 
@@ -458,7 +459,7 @@ export class GuideController {
 
 - [x] **Step 7: Run controller/provider/App tests and web typecheck.** Evidence: 14/14 focused tests pass and web typecheck exits 0.
 
-- [ ] **Step 8: Commit** with `feat: add TV guide state controller`.
+- [x] **Step 8: Commit** with `feat: add TV guide state controller`. Commit: `1838be0`.
 
 ---
 
@@ -486,23 +487,23 @@ type GuideWorkspaceProps = {
 }
 ```
 
-- [ ] **Step 1: Write GuideWorkspace RED markup tests** for no IPTV list, no EPG URLs with XMLTV file action, ready guide with seven date buttons, current/next programme text, unmatched `EPG yok` row, stale-cache warning, file-backed mode, URL-backed refresh controls, and `Kanalı oynat`.
+- [x] **Step 1: Write GuideWorkspace RED markup tests** for no IPTV list, no EPG URLs with XMLTV file action, seven date buttons, current/next programme text, unmatched `EPG yok`, stale warning, file-backed mode, URL refresh, and channel-play actions. Current-phase/App tests were moved to P6 in the same RED cycle.
 
-- [ ] **Step 2: Run the GuideWorkspace test** and confirm RED.
+- [x] **Step 2: Run the GuideWorkspace/current-phase tests**; RED was confirmed because `GuideWorkspace` did not exist and production copy still identified P5.
 
-- [ ] **Step 3: Implement functional GuideWorkspace** with existing shell classes where practical. Keep visual work functional: list selector, freshness state, refresh/file actions, seven-day tabs, channel rows, programme detail expansion, and channel-play buttons. Do not introduce a separate player or catch-up semantics.
+- [x] **Step 3: Implement functional GuideWorkspace** with lazy guide initialization, list/freshness/source state, refresh/file actions, seven local calendar days, current/next/progress, expandable programme details, unmatched rows, and channel-play buttons. A 60-second local tick re-derives now/next without network work.
 
-- [ ] **Step 4: Route `/guide` through GuideWorkspace** in `RouteContent`. Add `onPlayGuideChannel` only if needed; preferably reuse the existing `onPlayIptvChannel` callback so App continues to call `playerRequestForIptvChannel()` unchanged.
+- [x] **Step 4: Route `/guide` through GuideWorkspace** and reuse `onPlayIptvChannel` directly. No guide-specific player request/adapter was introduced.
 
-- [ ] **Step 5: Write/extend App RED test** proving clicking a guide channel callback hands the original `IptvChannel` into the existing IPTV player request path and does not create a new player engine.
+- [x] **Step 5: Extend App/route regression coverage** so `/guide` renders the real workspace instead of the XMLTV placeholder; the route passes the existing `onPlayIptvChannel` callback directly to GuideWorkspace. The final browser acceptance will click a real Guide channel and prove the existing UnifiedPlayer request path end-to-end.
 
-- [ ] **Step 6: Add scoped Guide CSS** for scrollable schedule rows, date tabs, status chips, and programme detail. Preserve the P1 desktop/tablet/phone shell; update responsive regression only for required overflow/stacking rules, not a visual redesign.
+- [x] **Step 6: Add scoped Guide CSS** for source controls, scrollable seven-day strip, shrink-safe channel rows, now/next panels, programme details, and phone stacking. Responsive regression explicitly checks horizontal date scrolling and one-column mobile now/next layout.
 
-- [ ] **Step 7: Move current phase copy to `P6 · XMLTV TV Guide`** in app metadata/sidebar/settings. Keep historical P2–P5 docs references intact.
+- [x] **Step 7: Move current phase copy to `P6 · XMLTV TV Guide`** in app metadata/sidebar/settings/source status while preserving historical P2–P5 documentation.
 
-- [ ] **Step 8: Update README** with `livetv-epg`, direct-first fetch, verified URL-backed API fallback, gzip/local-file behavior, 6-hour freshness, 12h/8d retention, seven-day guide, conservative channel matching, stale-cache behavior, and explicit no-generic-proxy/no-DVR/no-auth boundaries.
+- [x] **Step 8: Update README** with `livetv-epg`, direct-first fetch, verified/SSRF-constrained URL-backed fallback, exact-host LAN opt-in, gzip/local-file mode, freshness/retention, seven-day guide, conservative matching, stale cache, and no-generic-proxy/no-DVR/no-auth boundaries.
 
-- [ ] **Step 9: Run Guide/App/responsive/current-phase tests and web typecheck/build**; confirm GREEN.
+- [x] **Step 9: Run Guide/App/responsive/current-phase tests and web typecheck/build.** Final Task 6 evidence: 67/67 focused P6/shared/P4/App/responsive tests pass; shared + web typechecks exit 0; production web build succeeds. Self-review added RED→GREEN coverage for whitespace-separated M3U EPG URLs, per-source channel matching, unusable-empty XMLTV rejection, and minute clock ticks. WebTorrent remains separately lazy-loaded; the initial app chunk stays below the existing 500 kB warning threshold, while the pre-existing HLS chunk warning remains non-fatal.
 
 - [ ] **Step 10: Commit** with `feat: add functional XMLTV TV guide`.
 

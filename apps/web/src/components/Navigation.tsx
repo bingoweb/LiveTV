@@ -74,9 +74,10 @@ function DesktopNavigation({ activeRoute, onNavigate }: NavigationProps) {
         <div className="phase-card">
           <span className="phase-chip">{appMeta.phase}</span>
           <div>
-            <strong>Browser WebTorrent</strong>
+            <strong>XMLTV TV Guide</strong>
             <small>
-              Torrent akışı, IPTV ve kişisel kütüphane tek çalışma alanında.
+              IPTV program akışı, torrent ve kişisel kütüphane aynı LiveTV
+              çalışma alanında.
             </small>
           </div>
         </div>

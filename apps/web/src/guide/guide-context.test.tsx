@@ -29,6 +29,7 @@ function fakeController(): GuideControllerLike {
     refresh: vi.fn(async () => {}),
     importFile: vi.fn(async () => {}),
     selectDate: vi.fn(),
+    tick: vi.fn(),
   }
 }
 

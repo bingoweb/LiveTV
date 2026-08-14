@@ -30,6 +30,7 @@ export type GuideControllerLike = {
   }): Promise<void>
   importFile(file: File): Promise<void>
   selectDate(dateKey: string): void
+  tick(): void
 }
 
 export type GuideContextValue = GuideSnapshot & {
@@ -40,6 +41,7 @@ export type GuideContextValue = GuideSnapshot & {
   }): Promise<void>
   importFile(file: File): Promise<void>
   selectDate(dateKey: string): void
+  tick(): void
   selectList(id: string | null): Promise<void>
 }
 
@@ -81,6 +83,7 @@ export function GuideProvider({
       refresh: (options) => controller.refresh(options),
       importFile: (file) => controller.importFile(file),
       selectDate: (dateKey) => controller.selectDate(dateKey),
+      tick: () => controller.tick(),
       selectList: (id) => iptv.selectList(id),
     }),
     [controller, iptv, snapshot],
