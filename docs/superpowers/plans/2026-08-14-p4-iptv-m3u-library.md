@@ -343,7 +343,7 @@ export function playerPreferenceForIptvChannel(
 - [x] **Step 6: URL-refresh acceptance:** where a deterministic local/static HTTP M3U fixture can be served through the existing development web origin, import it by URL, update the fixture or use a controlled variant, press **Yenile**, and verify replacement. If the fixture intentionally fails, verify old stored rows remain visible. Evidence: temporary CORS-enabled `127.0.0.1:8099/list.m3u` imported as `P4 URL Refresh`, refreshed from 1 channel (`Refresh One`) to 2 (`Refresh Updated`, `Refresh Two`), then the fixture server was stopped and a failed refresh left both valid stored rows intact.
 - [x] **Step 7: Mark plan evidence and commit** with `chore: complete P4 IPTV M3U milestone`.
 - [x] **Step 8: Fresh verification before integration:** run `npm test`, secret scan tracked/staged content, and confirm worktree clean after milestone commit. Evidence: post-`51c6faa` `npm test` passes 33 files / 125 tests, tracked secret scan is clean, `.env` is not tracked, and the detached worktree was clean before recording this evidence.
-- [ ] **Step 9: Push detached worktree HEAD as `feat/p4-iptv-m3u-library`, open a PR to `main`, wait for `verify` + `dependency-review`, fix actionable failures, merge when green, fast-forward normal local `main`, preserve ignored `.env`, update the plan's integration checkbox, push that final docs commit, and run `npm run verify` on the final pushed `main` checkout.
+- [x] **Step 9: Push detached worktree HEAD as `feat/p4-iptv-m3u-library`, open a PR to `main`, wait for `verify` + `dependency-review`, fix actionable failures, merge when green, fast-forward normal local `main`, preserve ignored `.env`, update the plan's integration checkbox, push that final docs commit, and run `npm run verify` on the final pushed `main` checkout. Evidence: PR #7 passed `dependency-review` (4s) and `verify` (33s), merged as `ca7ee681616a76bb10c649c9ca6cab164c2ee740`, and the normal local `main` fast-forwarded to the same commit while the ignored YouTube API key remained present. Final docs push/main verification evidence is recorded by the follow-up integration commit and CI run.
 
 ## Exit Criteria
 
@@ -357,4 +357,4 @@ export function playerPreferenceForIptvChannel(
 - [x] Playing IPTV channels remains compatible with P3 history/favorites/playlists.
 - [x] IPTV storage/import failure leaves direct playback usable.
 - [x] No generic backend proxy, XMLTV rendering, auth/sync, torrent, recording, or download dependency is introduced.
-- [ ] Full verification, Docker acceptance, browser persistence/playback acceptance, GitHub CI, merge, and final-main verification pass.
+- [x] Full verification, Docker acceptance, browser persistence/playback acceptance, GitHub CI, merge, and final-main verification pass.
