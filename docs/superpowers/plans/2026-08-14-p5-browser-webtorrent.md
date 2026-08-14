@@ -329,6 +329,8 @@ export type TorrentReplayRequest = {
 - [x] **Step 9: Post-commit `npm test`, secret scan, worktree-clean proof**, then record evidence in a small docs commit. Evidence after milestone commit `88d7adc`: 41 test files / 164 tests pass; commit-patch secret scan passes; `.env` is not tracked; detached worktree is clean.
 - [ ] **Step 10: Push detached HEAD as `feat/p5-browser-webtorrent`, open PR to `main`, wait for `verify` + `dependency-review`, fix actionable failures, merge when green, fast-forward normal main while preserving ignored `.env`, close integration checkbox with final docs commit, push, run full `npm run verify` on final pushed main, and confirm final main push CI succeeds.
 
+  PR #8 integration note: the first Dependency Review run correctly blocked `ip@2.0.1` / `GHSA-2p57-rm9w-gvfp`, the already-documented transitive WebTorrent advisory. The official action supports `allow-ghsas`, so the workflow now exempts only that advisory with an explicit browser-only/no-server-proxy rationale; severity thresholds and all other vulnerability checks remain unchanged.
+
 ## Exit Criteria
 
 - [x] Magnet, local `.torrent`, and HTTP(S) torrent inputs enter Browser WebTorrent without backend proxying.

@@ -236,7 +236,7 @@ History/Favorites/Playlist identity is derived from `infoHash + filePath`. Repla
 
 ### Dependency audit note
 
-WebTorrent `3.0.21` is MIT licensed and passes the repository's direct dependency license policy. The current npm dependency graph reports the known high-severity `GHSA-2p57-rm9w-gvfp` advisory through `webtorrent → torrent-discovery → bittorrent-tracker → ip`. npm does not currently offer a viable modern in-range fix and suggests a breaking downgrade to a very old WebTorrent release. LiveTV does not apply `npm audit fix --force`; P5 keeps WebTorrent browser-only and does not introduce a server-side arbitrary-URL/SSRF proxy surface. This transitive advisory remains a tracked dependency caveat rather than being hidden by a breaking downgrade.
+WebTorrent `3.0.21` is MIT licensed and passes the repository's direct dependency license policy. The current npm dependency graph reports the known high-severity `GHSA-2p57-rm9w-gvfp` advisory through `webtorrent → torrent-discovery → bittorrent-tracker → ip`. npm does not currently offer a viable modern in-range fix and suggests a breaking downgrade to a very old WebTorrent release. LiveTV does not apply `npm audit fix --force`; P5 keeps WebTorrent browser-only and does not introduce a server-side arbitrary-URL/SSRF proxy surface. GitHub Dependency Review therefore allowlists **only this advisory ID** while retaining its normal blocking policy for every other new vulnerability; the exception should be removed as soon as upstream WebTorrent resolves the dependency. This transitive advisory remains a tracked dependency caveat rather than being hidden by a breaking downgrade.
 
 ## PWA behavior
 
