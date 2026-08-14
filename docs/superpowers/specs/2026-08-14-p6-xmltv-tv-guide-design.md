@@ -78,6 +78,25 @@ For both playlist and XMLTV fetches:
 
 This protection applies even though LiveTV is self-hosted; the endpoint remains intentionally narrow by construction.
 
+### Optional private-host allowlist
+
+Some self-hosted/LAN IPTV providers legitimately expose playlist/EPG endpoints on private addresses. P6 therefore supports an **explicit admin configuration override**:
+
+```text
+EPG_FETCH_ALLOWED_PRIVATE_HOSTS=
+```
+
+Rules:
+
+- default is empty, so private/non-public targets remain rejected;
+- values are comma-separated exact hostnames or literal IPs, trimmed and case-normalized for hostnames;
+- only the exact configured host may bypass the public-address check;
+- redirects are revalidated independently, so a redirect to a different private host is rejected unless that destination is also explicitly allowlisted;
+- protocol, timeout, size, playlist-declaration verification, redirect-count, and header restrictions still apply;
+- this setting is server-side only and is never exposed as a Vite/client variable.
+
+This keeps default deployments public-network-only while preserving opt-in LAN functionality for the administrator who controls the LiveTV server.
+
 ## Fetch strategy
 
 For a saved IPTV list with one or more `epgUrls`, the client tries sources in list order.
@@ -509,6 +528,7 @@ Expected structured error codes include:
 - undeclared EPG rejected;
 - private/loopback literal IP rejected;
 - DNS-resolved non-public address rejected;
+- exact admin private-host allowlist permits only the configured hostname/IP and does not disable other network checks;
 - redirect target revalidated;
 - redirect count limit;
 - playlist/XMLTV body limits;
