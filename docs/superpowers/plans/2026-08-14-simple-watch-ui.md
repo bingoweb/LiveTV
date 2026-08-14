@@ -32,7 +32,7 @@
 - Consumes: `UnifiedPlayer` with no route-specific application coordination.
 - Produces: one static `<App />` shell containing brand copy and the player.
 
-- [ ] **Step 1: Replace the route-shell tests with a failing simple-shell contract.** The new test must assert that `renderToStaticMarkup(<App />)` contains `LiveTV`, `Yükle ve İzle`, and `unified-player`, and does not contain `Ana navigasyon`, `mobile-bottom-nav`, `IPTV / M3U kütüphanesi`, `TV rehberi`, `Torrent`, `Playlistler`, `Geçmiş`, `Ayarlar`, or phase copy such as `P6`.
+- [x] **Step 1: Replace the route-shell tests with a failing simple-shell contract.** RED confirmed against the old navigation/dashboard shell.
 
 ```tsx
 const markup = renderToStaticMarkup(<App />)
@@ -43,11 +43,11 @@ expect(markup).not.toContain('Ana navigasyon')
 expect(markup).not.toContain('Ayarlar')
 ```
 
-- [ ] **Step 2: Run the App test and confirm RED** because the current shell still renders navigation, routes, providers, and phase UI.
+- [x] **Step 2: Run the App test and confirm RED.**
 
 Run: `npx vitest run apps/web/src/App.test.tsx`
 
-- [ ] **Step 3: Simplify `App.tsx`.** Remove Navigation, RouteContent, SettingsShell, route resolution, history/popstate state, IPTV/Guide/Torrent/Library providers, and playback request coordination. Render one shell:
+- [x] **Step 3: Simplify `App.tsx`.** Navigation, route coordination, secondary providers, and playback orchestration were removed from the visible application entry path.
 
 ```tsx
 export function App() {
@@ -73,11 +73,11 @@ export function App() {
 }
 ```
 
-- [ ] **Step 4: Run App tests and web typecheck; confirm GREEN.**
+- [x] **Step 4: Run App tests and web typecheck; confirm GREEN.**
 
 Run: `npx vitest run apps/web/src/App.test.tsx && npm run typecheck -w @livetv/web`
 
-- [ ] **Step 5: Commit** with `refactor: collapse LiveTV to single watch shell`.
+- [x] **Step 5: Commit** with `refactor: collapse LiveTV to single watch shell` (`8aad02a`).
 
 ---
 
@@ -93,7 +93,7 @@ Run: `npx vitest run apps/web/src/App.test.tsx && npm run typecheck -w @livetv/w
 - Consumes: `PlayerController`, `createBrowserAdapterFactories`, `parseYouTubeChannelReference`, `loadYouTubeChannelWithRecovery`.
 - Produces: `UnifiedPlayer(): JSX.Element` with one URL field and one primary submit action.
 
-- [ ] **Step 1: Write failing static-markup tests** proving the player contains `Medya URL’si`, `Yükle ve İzle`, and the viewport, while excluding `Motor`, `Premium`, `Kalite`, `Favoriye ekle`, `Yeni playlist`, `Canlı yayınlar`, `Halk TV`, `ANKA Haber`, file inputs, and route-specific helper copy.
+- [x] **Step 1: Write failing static-markup tests** proving the simple controls and absence of advanced/library/local-file UI.
 
 ```tsx
 const markup = renderToStaticMarkup(<UnifiedPlayer />)
@@ -104,13 +104,13 @@ expect(markup).not.toContain('Premium')
 expect(markup).not.toContain('type="file"')
 ```
 
-- [ ] **Step 2: Run the new test and confirm RED.**
+- [x] **Step 2: Run the new test and confirm RED.** Initial failure proved the old LibraryProvider dependency was still active.
 
 Run: `npx vitest run apps/web/src/components/UnifiedPlayer.test.tsx`
 
-- [ ] **Step 3: Remove route/library/settings UI dependencies from `UnifiedPlayer`.** Delete `useLibrary`, `LibrarySourceActions`, navigation types, featured-channel polling/buttons, manual source preference state/control, Premium toggle state/control, manual quality UI, footer session controls, and `openRequest` handling. Keep the controller lifecycle, automatic loading, state/error updates, and media host.
+- [x] **Step 3: Remove route/library/settings UI dependencies from `UnifiedPlayer`.**
 
-- [ ] **Step 4: Keep automatic YouTube live recovery with fixed automatic source preference.** `openSource` must always use `auto`; channel/handle URLs continue through `loadYouTubeChannelWithRecovery`. Browser adapters should receive an internal YouTube mode getter returning the existing session-aware mode without exposing a UI toggle.
+- [x] **Step 4: Keep automatic YouTube live recovery with fixed automatic source preference.** The existing session-aware embed mode remains internal. The brittle Plyr default-export type bridge was also replaced with the actual `export =` constructor shape after TypeScript exposed it during this task.
 
 ```ts
 const nextSource = channelReference
@@ -122,13 +122,13 @@ const nextSource = channelReference
   : await controller.load(requestedUrl, 'auto')
 ```
 
-- [ ] **Step 5: Render only the minimal interaction hierarchy.** Use one title/subtitle, one URL input row, primary button text `Yükle ve İzle` / `Yükleniyor…`, one status chip, 16:9 viewport, and inline error banner. Empty-state copy should be concise: `İzlemek istediğin bağlantıyı yapıştır.`
+- [x] **Step 5: Render only the minimal interaction hierarchy.**
 
-- [ ] **Step 6: Run focused player/App/player-core/YouTube recovery tests and typecheck.**
+- [x] **Step 6: Run focused player/App/player-core/YouTube recovery tests and typecheck.** Evidence: 17/17 focused tests pass and web typecheck exits 0.
 
 Run: `npx vitest run apps/web/src/components/UnifiedPlayer.test.tsx apps/web/src/App.test.tsx apps/web/src/player/youtube-live-recovery.test.ts packages/player-core/test/source.test.ts packages/player-core/test/controller.test.ts && npm run typecheck -w @livetv/web`
 
-- [ ] **Step 7: Commit** with `refactor: simplify player to load and watch`.
+- [x] **Step 7: Commit** with `refactor: simplify player to load and watch` (`ef451fe`).
 
 ---
 
@@ -145,7 +145,7 @@ Run: `npx vitest run apps/web/src/components/UnifiedPlayer.test.tsx apps/web/src
 - Consumes: `.simple-watch-app`, `.simple-watch-header`, `.simple-watch-main`, `.simple-watch-brand`, `.unified-player`, `.player-source-form`, `.player-source-input-row`, `.unified-player-viewport`.
 - Produces: centered desktop layout and stacked mobile layout without sidebar/bottom-nav dependencies.
 
-- [ ] **Step 1: Replace responsive regression expectations with RED tests** for the simple watch UI. Require a centered max-width main container, `aspect-ratio: 16 / 9` on the player viewport, and at `max-width: 768px` a single-column `.player-source-input-row`.
+- [x] **Step 1: Replace responsive regression expectations with RED tests** for centered 16:9 desktop and stacked mobile controls.
 
 ```ts
 expect(css).toMatch(
@@ -156,19 +156,19 @@ expect(css).toMatch(
 )
 ```
 
-- [ ] **Step 2: Run responsive tests and confirm RED** against the old dashboard stylesheet.
+- [x] **Step 2: Run responsive tests and confirm RED** against the old dashboard stylesheet.
 
 Run: `npx vitest run tests/responsive-css.test.ts`
 
-- [ ] **Step 3: Add a final simple-watch CSS override section** that neutralizes the old shell layout and styles only the new visible classes: dark cinematic page, compact header, centered max-width content, restrained input card, high-emphasis primary button, 16:9 viewport, quiet status/error treatment, and mobile stacking. Do not spend this task deleting every dormant historical selector.
+- [x] **Step 3: Add a final simple-watch CSS override section** for the cinematic single-screen surface and mobile stacking.
 
-- [ ] **Step 4: Update README current-product description** so the first-run experience is documented as URL → **Yükle ve İzle** and earlier P3–P6 modules are described as retained internal/dormant code rather than visible navigation.
+- [x] **Step 4: Update README current-product description** to the new load-and-watch product boundary.
 
-- [ ] **Step 5: Run App/player/responsive tests, web typecheck, and production build.**
+- [x] **Step 5: Run App/player/responsive tests, web typecheck, and production build.** Evidence: 4/4 focused UI tests pass; web build succeeds and the initial app JS shrinks from roughly 386 kB to 204 kB while HLS remains lazy.
 
 Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPlayer.test.tsx tests/responsive-css.test.ts && npm run typecheck -w @livetv/web && npm run build -w @livetv/web`
 
-- [ ] **Step 6: Commit** with `style: streamline LiveTV watch experience`.
+- [x] **Step 6: Commit** with `style: streamline LiveTV watch experience` (`972b41e`). The dormant P5 wiring regression was updated in `fb65018` so old torrent code remains present but is intentionally outside App/UnifiedPlayer.
 
 ---
 
@@ -183,17 +183,17 @@ Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPl
 - Consumes: final simple-watch application.
 - Produces: verified branch ready for PR/merge.
 
-- [ ] **Step 1: Run full local gate.** `npm run verify`, `git diff --check`, `docker compose config`, tracked Google API-key-pattern scan, `.env` ignored proof.
+- [x] **Step 1: Run full local gate.** Evidence: 54 Vitest files / 229 tests pass; formatting, ESLint, all typechecks/builds, 21-dependency license policy, diff check, Compose config, tracked Google API-key scan, and `.env` ignore proof are clean.
 
-- [ ] **Step 2: Rebuild Docker stack** while preserving `YOUTUBE_DATA_API_KEY` process-to-process without printing it; verify root/API/media health return HTTP 200.
+- [x] **Step 2: Rebuild Docker stack** while preserving `YOUTUBE_DATA_API_KEY` process-to-process without printing it. Root, API, and media health return HTTP 200 after startup.
 
-- [ ] **Step 3: Browser desktop acceptance in a clean context.** Verify the page shows only brand + URL input + `Yükle ve İzle` + player; no navigation, settings, IPTV, Torrent, Guide, History, Playlist, Premium, Motor, Quality, or local-file control is visible.
+- [x] **Step 3: Browser desktop acceptance in a clean context.** The accessibility tree contains only brand, URL field, one `Yükle ve İzle` action, status, and player; all removed product controls are absent.
 
-- [ ] **Step 4: Browser playback acceptance.** Load the deterministic local HTTP media fixture by URL and prove the existing viewport reaches playable/ended state with no media error. Load a YouTube watch/channel URL and prove automatic YouTube path still initializes or resolves without exposing settings.
+- [x] **Step 4: Browser playback acceptance.** A generated 4.008-second VP9/Opus WebM reached `readyState=4`, played with no media error, and a pasted `https://www.youtube.com/@Halktvkanali` URL automatically resolved to the active live YouTube embed without settings UI.
 
-- [ ] **Step 5: Browser mobile acceptance.** Use a narrow viewport, prove URL/button stack vertically, viewport remains full width/16:9, and no horizontal application overflow appears.
+- [x] **Step 5: Browser mobile acceptance.** At 390×844, document width equals viewport width (no horizontal overflow), controls are one column, and the viewport measures 360×202.5 (16:9).
 
-- [ ] **Step 6: Clean console acceptance.** In a separate fresh browser context, reload the simple watch screen and confirm zero application `error`, `warn`, and `issue` console messages.
+- [x] **Step 6: Clean console acceptance.** Separate isolated context reports zero `error`, zero `warn`, and zero `issue` console messages.
 
 - [ ] **Step 7: Record evidence and commit** with `chore: complete simple watch UI milestone`.
 
@@ -201,11 +201,11 @@ Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPl
 
 ## Exit Criteria
 
-- [ ] One visible screen: URL → `Yükle ve İzle` → player.
-- [ ] No visible navigation, advanced menu, Settings, IPTV, Torrent, Guide, History, Playlist, or library UI.
-- [ ] No local-file selector.
-- [ ] No manual engine, Premium, or quality controls.
-- [ ] Automatic direct/HLS/YouTube source detection still works.
-- [ ] YouTube channel/handle live recovery remains functional.
-- [ ] Desktop and mobile layouts are clean, centered, and responsive.
+- [x] One visible screen: URL → `Yükle ve İzle` → player.
+- [x] No visible navigation, advanced menu, Settings, IPTV, Torrent, Guide, History, Playlist, or library UI.
+- [x] No local-file selector.
+- [x] No manual engine, Premium, or quality controls.
+- [x] Automatic direct/HLS/YouTube source detection still works.
+- [x] YouTube channel/handle live recovery remains functional.
+- [x] Desktop and mobile layouts are clean, centered, and responsive.
 - [ ] Full local verification, Docker/browser acceptance, PR CI, merge, and final-main verification pass.
