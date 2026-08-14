@@ -2,52 +2,18 @@ import {
   PlayerController,
   PlayerSourceError,
   parseYouTubeChannelReference,
-  type PlayerQuality,
   type PlayerSource,
-  type PlayerSourcePreference,
 } from '@livetv/player-core'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { useLibrary } from '../library/library-context'
-import { resolvePlayerLibrarySource } from '../library/player-library-source'
-import { shouldRecordPlayback } from '../library/playback-history-session'
-import type { NavigationItem } from '../navigation'
 import {
   createBrowserAdapterFactories,
   type BrowserPlayerState,
 } from '../player/browser-adapters'
-import type { YouTubeEmbedMode } from '../player/player-config'
-import type { PlayerOpenRequest } from '../player/player-open-request'
 import { loadYouTubeChannelWithRecovery } from '../player/youtube-live-recovery'
-import {
-  readYouTubeEmbedMode,
-  writeYouTubeEmbedMode,
-  YOUTUBE_EMBED_MODE_EVENT,
-} from '../player/youtube-session'
-import {
-  featuredYouTubeChannels,
-  loadFeaturedLiveStatuses,
-  type LiveChannelStatus,
-} from '../youtube/live-channels'
-import { AppIcon } from './AppIcon'
-import { LibrarySourceActions } from './LibrarySourceActions'
-
-type UnifiedPlayerProps = {
-  route: NavigationItem
-  openRequest?: PlayerOpenRequest | null
-}
+import { readYouTubeEmbedMode } from '../player/youtube-session'
 
 type PlayerUiState = 'idle' | BrowserPlayerState | 'error'
-type OpenRequestMetadata = Pick<
-  PlayerOpenRequest,
-  'title' | 'thumbnailUrl' | 'channelUrl' | 'librarySourceOverride'
->
-
-const sourceKindLabels: Record<PlayerSource['kind'], string> = {
-  direct: 'Direct media',
-  hls: 'HLS',
-  youtube: 'YouTube',
-}
 
 type LiveResolverResponse =
   | {
@@ -61,148 +27,19 @@ type LiveResolverResponse =
       liveUrl: string
     }
 
-function routePlaceholder(route: NavigationItem) {
-  if (route.id === 'youtube') return 'https://www.youtube.com/watch?v=…'
-  if (route.id === 'iptv' || route.id === 'live') return 'https://…/stream.m3u8'
-  return 'https://…/video.mp4, .m3u8 veya YouTube URL’si'
-}
-
 function errorMessage(error: unknown) {
   if (error instanceof PlayerSourceError) return error.message
   if (error instanceof Error) return error.message
   return 'Kaynak açılırken beklenmeyen bir hata oluştu.'
 }
 
-export function UnifiedPlayer({
-  route,
-  openRequest = null,
-}: UnifiedPlayerProps) {
-  const library = useLibrary()
+export function UnifiedPlayer() {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const controllerRef = useRef<PlayerController | null>(null)
-  const recordedLibrarySourceKeyRef = useRef<string | null>(null)
-  const consumedOpenRequestIdRef = useRef<number | null>(null)
   const [url, setUrl] = useState('')
-  const [preference, setPreference] = useState<PlayerSourcePreference>('auto')
-  const [youtubeEmbedMode, setYoutubeEmbedMode] =
-    useState<YouTubeEmbedMode>('premium-session')
-  const [liveChannelStatuses, setLiveChannelStatuses] = useState<
-    readonly LiveChannelStatus[]
-  >([])
-  const [liveChannelRefreshPending, setLiveChannelRefreshPending] =
-    useState(false)
   const [state, setState] = useState<PlayerUiState>('idle')
   const [source, setSource] = useState<PlayerSource | null>(null)
-  const [qualities, setQualities] = useState<readonly PlayerQuality[]>([])
-  const [selectedQuality, setSelectedQuality] = useState(-1)
   const [error, setError] = useState<string | null>(null)
-  const [activeMetadata, setActiveMetadata] =
-    useState<OpenRequestMetadata | null>(null)
-
-  const librarySource = useMemo(() => {
-    if (!source) return null
-
-    if (source.kind === 'youtube') {
-      const liveStatus = liveChannelStatuses.find(
-        (status): status is Extract<LiveChannelStatus, { status: 'live' }> =>
-          status.status === 'live' && status.videoId === source.videoId,
-      )
-      return resolvePlayerLibrarySource({
-        source,
-        override: activeMetadata?.librarySourceOverride ?? null,
-        title: activeMetadata?.title ?? liveStatus?.title ?? 'YouTube yayını',
-        ...((activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl)
-          ? {
-              thumbnailUrl:
-                activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl,
-            }
-          : {}),
-        ...((activeMetadata?.channelUrl ?? liveStatus?.channel.url)
-          ? {
-              channelUrl: activeMetadata?.channelUrl ?? liveStatus?.channel.url,
-            }
-          : {}),
-      })
-    }
-
-    return resolvePlayerLibrarySource({
-      source,
-      override: activeMetadata?.librarySourceOverride ?? null,
-      title:
-        activeMetadata?.title ??
-        (source.kind === 'hls'
-          ? 'HLS yayını'
-          : source.mediaType === 'audio'
-            ? 'Ses kaynağı'
-            : 'Video kaynağı'),
-      ...(activeMetadata?.thumbnailUrl
-        ? { thumbnailUrl: activeMetadata.thumbnailUrl }
-        : {}),
-      ...(activeMetadata?.channelUrl
-        ? { channelUrl: activeMetadata.channelUrl }
-        : {}),
-    })
-  }, [activeMetadata, liveChannelStatuses, source])
-
-  useEffect(() => {
-    const decision = shouldRecordPlayback(
-      recordedLibrarySourceKeyRef.current,
-      state,
-      librarySource,
-    )
-
-    if (!librarySource) {
-      recordedLibrarySourceKeyRef.current = decision.nextRecordedSourceKey
-      return
-    }
-
-    if (decision.record && library.status !== 'ready') return
-
-    recordedLibrarySourceKeyRef.current = decision.nextRecordedSourceKey
-    if (decision.record) {
-      void library.recordPlayback(librarySource).catch(() => {
-        recordedLibrarySourceKeyRef.current = null
-      })
-    }
-  }, [library, librarySource, state])
-
-  useEffect(() => {
-    setYoutubeEmbedMode(readYouTubeEmbedMode())
-
-    const handleModeChange = (event: Event) => {
-      setYoutubeEmbedMode((event as CustomEvent<YouTubeEmbedMode>).detail)
-    }
-
-    window.addEventListener(YOUTUBE_EMBED_MODE_EVENT, handleModeChange)
-    return () =>
-      window.removeEventListener(YOUTUBE_EMBED_MODE_EVENT, handleModeChange)
-  }, [])
-
-  useEffect(() => {
-    if (route.id !== 'youtube') return
-
-    let active = true
-
-    const refresh = async () => {
-      if (!active) return
-      setLiveChannelRefreshPending(true)
-      const statuses = await loadFeaturedLiveStatuses()
-      if (!active) return
-      setLiveChannelStatuses(statuses)
-      setLiveChannelRefreshPending(false)
-    }
-
-    void refresh()
-    const timer = window.setInterval(() => void refresh(), 30_000)
-    const handleFocus = () => void refresh()
-    window.addEventListener('focus', handleFocus)
-
-    return () => {
-      active = false
-      window.clearInterval(timer)
-      window.removeEventListener('focus', handleFocus)
-    }
-  }, [route.id])
 
   useEffect(() => {
     const host = hostRef.current
@@ -217,10 +54,7 @@ export function UnifiedPlayer({
             setError(message)
             setState('error')
           },
-          onQualities: (nextQualities) => {
-            setQualities(nextQualities)
-            setSelectedQuality(-1)
-          },
+          onQualities: () => {},
         },
         { getYouTubeEmbedMode: readYouTubeEmbedMode },
       ),
@@ -233,13 +67,9 @@ export function UnifiedPlayer({
     }
   }, [])
 
-  const resolveYouTubeChannelLive = async (
-    input: string,
-    options: { refresh?: boolean } = {},
-  ) => {
-    const refresh = options.refresh ? '&refresh=1' : ''
+  const resolveYouTubeChannelLive = async (input: string) => {
     const response = await fetch(
-      `/api/youtube/resolve-live?url=${encodeURIComponent(input)}${refresh}`,
+      `/api/youtube/resolve-live?url=${encodeURIComponent(input)}`,
     )
     const payload = (await response.json()) as LiveResolverResponse & {
       message?: string
@@ -258,35 +88,27 @@ export function UnifiedPlayer({
     return payload.videoUrl
   }
 
-  const openSource = async (
-    requestedUrl = url,
-    requestedPreference = preference,
-    metadata: OpenRequestMetadata | null = null,
-  ) => {
+  const openSource = async () => {
     const controller = controllerRef.current
-    if (!controller) return
+    const requestedUrl = url.trim()
+    if (!controller || !requestedUrl) return
 
     setError(null)
     setState('loading')
-    setQualities([])
-    setSelectedQuality(-1)
     setSource(null)
-    setActiveMetadata(metadata)
 
     try {
       await controller.destroy()
 
-      const channelReference =
-        requestedPreference === 'auto' || requestedPreference === 'youtube'
-          ? parseYouTubeChannelReference(requestedUrl)
-          : null
+      const channelReference = parseYouTubeChannelReference(requestedUrl)
       const nextSource = channelReference
         ? await loadYouTubeChannelWithRecovery(
             requestedUrl,
             resolveYouTubeChannelLive,
-            (playableUrl) => controller.load(playableUrl, requestedPreference),
+            (playableUrl) => controller.load(playableUrl, 'auto'),
           )
-        : await controller.load(requestedUrl, requestedPreference)
+        : await controller.load(requestedUrl, 'auto')
+
       setSource(nextSource)
     } catch (caughtError) {
       setError(errorMessage(caughtError))
@@ -294,224 +116,56 @@ export function UnifiedPlayer({
     }
   }
 
-  useEffect(() => {
-    if (!openRequest || consumedOpenRequestIdRef.current === openRequest.id) {
-      return
-    }
-
-    consumedOpenRequestIdRef.current = openRequest.id
-    setUrl(openRequest.url)
-    setPreference(openRequest.preference)
-    void openSource(openRequest.url, openRequest.preference, {
-      ...(openRequest.title ? { title: openRequest.title } : {}),
-      ...(openRequest.thumbnailUrl
-        ? { thumbnailUrl: openRequest.thumbnailUrl }
-        : {}),
-      ...(openRequest.channelUrl ? { channelUrl: openRequest.channelUrl } : {}),
-      ...(openRequest.librarySourceOverride
-        ? { librarySourceOverride: openRequest.librarySourceOverride }
-        : {}),
-    })
-  }, [openRequest])
-
-  const togglePlayback = async () => {
-    const controller = controllerRef.current
-    if (!controller || !source) return
-
-    try {
-      if (state === 'playing') {
-        controller.pause()
-        return
-      }
-      await controller.play()
-    } catch (caughtError) {
-      setError(errorMessage(caughtError))
-      setState('error')
-    }
-  }
-
-  const chooseQuality = (id: number) => {
-    controllerRef.current?.setQuality(id)
-    setSelectedQuality(id)
-  }
-
-  const setPremiumSessionMode = (enabled: boolean) => {
-    const mode: YouTubeEmbedMode = enabled ? 'premium-session' : 'privacy'
-    setYoutubeEmbedMode(mode)
-    writeYouTubeEmbedMode(mode)
-  }
-
-  const openFeaturedChannel = (channelUrl: string) => {
-    setUrl(channelUrl)
-    setPreference('youtube')
-    void openSource(channelUrl, 'youtube')
-  }
-
-  const refreshFeaturedChannels = async () => {
-    setLiveChannelRefreshPending(true)
-    const statuses = await loadFeaturedLiveStatuses(fetch, { refresh: true })
-    setLiveChannelStatuses(statuses)
-    setLiveChannelRefreshPending(false)
-  }
-
-  const liveStatusFor = (channelUrl: string) =>
-    liveChannelStatuses.find(({ channel }) => channel.url === channelUrl)
-
   const statusLabel =
     state === 'idle'
-      ? 'Kaynak bekleniyor'
+      ? 'Hazır'
       : state === 'loading'
-        ? 'Kaynak hazırlanıyor'
+        ? 'Yükleniyor'
         : state === 'playing'
           ? 'Oynatılıyor'
           : state === 'paused'
             ? 'Duraklatıldı'
             : state === 'ended'
-              ? 'Oynatma tamamlandı'
+              ? 'Tamamlandı'
               : state === 'error'
                 ? 'Kaynak hatası'
                 : 'Oynatıcı hazır'
 
   return (
     <section
-      className={`player-card unified-player${source ? ' has-active-source' : ''}`}
+      className={`player-card unified-player simple-watch-player${source ? ' has-active-source' : ''}`}
       aria-label="LiveTV oynatıcı alanı"
     >
-      <div className="player-toolbar unified-player-toolbar">
-        <div className="player-source">
-          <span className="player-source-icon">
-            <AppIcon
-              name={
-                source
-                  ? source.kind === 'youtube'
-                    ? 'youtube'
-                    : source.kind === 'hls'
-                      ? 'iptv'
-                      : 'live'
-                  : route.icon
-              }
-              size={19}
-            />
-          </span>
-          <span>
-            <small>Aktif kaynak</small>
-            <strong>
-              {source ? sourceKindLabels[source.kind] : route.label}
-            </strong>
-          </span>
+      <div className="simple-watch-intro">
+        <div>
+          <span className="simple-watch-kicker">Yükle ve izle</span>
+          <h1>İzlemek istediğin bağlantıyı yapıştır.</h1>
+          <p>YouTube, M3U8 veya doğrudan video bağlantısı yeterli.</p>
         </div>
-
         <span
           className={`player-ready-chip player-state-chip player-state-chip--${state}`}
+          aria-live="polite"
         >
           {statusLabel}
         </span>
       </div>
 
       <form
-        className="player-source-form"
+        className="player-source-form simple-watch-source-form"
         onSubmit={(event) => {
           event.preventDefault()
           void openSource()
         }}
       >
-        <div className="player-source-form-heading">
-          <label htmlFor="player-source-url">Medya URL’si</label>
-          <div className="player-source-form-options">
-            <label className="premium-session-toggle">
-              <input
-                id="youtube-premium-session"
-                name="youtube-premium-session"
-                type="checkbox"
-                aria-label="YouTube Premium oturumunu kullan"
-                checked={youtubeEmbedMode === 'premium-session'}
-                onChange={(event) =>
-                  setPremiumSessionMode(event.target.checked)
-                }
-              />
-              <span className="toggle-track" aria-hidden="true">
-                <span />
-              </span>
-              <span>Premium</span>
-            </label>
-            <label className="source-mode-control">
-              <span>Motor</span>
-              <select
-                id="player-source-mode"
-                name="player-source-mode"
-                value={preference}
-                onChange={(event) =>
-                  setPreference(event.target.value as PlayerSourcePreference)
-                }
-              >
-                <option value="auto">Otomatik</option>
-                <option value="hls">HLS</option>
-                <option value="youtube">YouTube</option>
-                <option value="direct-video">Video</option>
-                <option value="direct-audio">Ses</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        {route.id === 'youtube' ? (
-          <div className="featured-youtube-live-section">
-            <div className="featured-live-heading">
-              <span>Canlı yayınlar</span>
-              <button
-                type="button"
-                disabled={liveChannelRefreshPending}
-                onClick={() => void refreshFeaturedChannels()}
-              >
-                {liveChannelRefreshPending ? 'Kontrol ediliyor…' : 'Yenile'}
-              </button>
-            </div>
-            <div
-              className="featured-youtube-channels"
-              aria-label="Sabit YouTube canlı kanalları"
-            >
-              {featuredYouTubeChannels.map((channel) => {
-                const status = liveStatusFor(channel.url)
-                const statusLabel =
-                  status?.status === 'live'
-                    ? 'CANLI'
-                    : status?.status === 'offline'
-                      ? 'Çevrimdışı'
-                      : status?.status === 'error'
-                        ? 'Durum alınamadı'
-                        : 'Kontrol ediliyor'
-
-                return (
-                  <button
-                    key={channel.url}
-                    type="button"
-                    className={`featured-channel-button featured-channel-button--${status?.status ?? 'loading'}`}
-                    disabled={state === 'loading'}
-                    onClick={() => openFeaturedChannel(channel.url)}
-                  >
-                    <span className="featured-live-dot" aria-hidden="true" />
-                    <span>
-                      <strong>{channel.name}</strong>
-                      <small>
-                        {status?.status === 'live' && status.title
-                          ? status.title
-                          : channel.handle}
-                      </small>
-                      <em>{statusLabel}</em>
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ) : null}
-
+        <label className="simple-watch-url-label" htmlFor="player-source-url">
+          Medya URL’si
+        </label>
         <div className="player-source-input-row">
           <input
             id="player-source-url"
             type="url"
             value={url}
-            placeholder={routePlaceholder(route)}
+            placeholder="https://…"
             autoComplete="off"
             inputMode="url"
             onChange={(event) => setUrl(event.target.value)}
@@ -521,13 +175,9 @@ export function UnifiedPlayer({
             type="submit"
             disabled={!url.trim() || state === 'loading'}
           >
-            {state === 'loading' ? 'Açılıyor…' : 'Kaynağı aç'}
+            {state === 'loading' ? 'Yükleniyor…' : 'Yükle ve İzle'}
           </button>
         </div>
-        <p>
-          Kanal adresleri aktif /live yayınına çözülür. YouTube oturumu açıkken
-          Premium üyeliğin tarayıcı tarafından kullanılabilir.
-        </p>
       </form>
 
       <div
@@ -540,11 +190,7 @@ export function UnifiedPlayer({
             <span className="empty-play-button" aria-hidden="true">
               <span />
             </span>
-            <strong>Tek oynatıcı, üç kaynak türü</strong>
-            <p>
-              Bir medya URL’si gir; LiveTV kaynağı otomatik tanıyıp uygun motoru
-              bağlasın.
-            </p>
+            <strong>Bağlantıyı yükle, gerisini LiveTV halletsin.</strong>
           </div>
         ) : null}
 
@@ -561,55 +207,6 @@ export function UnifiedPlayer({
             <span>{error}</span>
           </div>
         ) : null}
-      </div>
-
-      <div className="player-footer unified-player-footer">
-        <div>
-          <span className="footer-label">Oturum</span>
-          <strong>
-            {source ? sourceKindLabels[source.kind] : 'Yeni kaynak bekleniyor'}
-          </strong>
-        </div>
-
-        <div className="unified-player-actions">
-          <LibrarySourceActions source={librarySource} />
-
-          {source?.kind === 'youtube' ? (
-            <a
-              className="youtube-open-link"
-              href={source.url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              YouTube’da aç
-            </a>
-          ) : null}
-
-          {qualities.length > 1 ? (
-            <label className="quality-control">
-              <span>Kalite</span>
-              <select
-                value={selectedQuality}
-                onChange={(event) => chooseQuality(Number(event.target.value))}
-              >
-                {qualities.map((quality) => (
-                  <option key={quality.id} value={quality.id}>
-                    {quality.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          <button
-            className="player-session-button"
-            type="button"
-            disabled={!source || state === 'loading'}
-            onClick={() => void togglePlayback()}
-          >
-            {state === 'playing' ? 'Duraklat' : 'Oynat'}
-          </button>
-        </div>
       </div>
     </section>
   )

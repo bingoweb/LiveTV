@@ -5,7 +5,6 @@ import type {
   PlayerSource,
 } from '@livetv/player-core'
 import type Hls from 'hls.js'
-import type Plyr from 'plyr'
 
 import {
   buildBasePlyrOptions,
@@ -14,12 +13,19 @@ import {
   toHlsQualities,
 } from './player-config'
 
-let plyrConstructorPromise: Promise<(typeof import('plyr'))['default']> | null =
-  null
+type PlyrConstructor = typeof import('plyr')
+type PlyrInstance = InstanceType<PlyrConstructor>
+
+let plyrConstructorPromise: Promise<PlyrConstructor> | null = null
 let hlsModulePromise: Promise<typeof import('hls.js')> | null = null
 
 function loadPlyr() {
-  plyrConstructorPromise ??= import('plyr').then((module) => module.default)
+  plyrConstructorPromise ??= import('plyr').then((module) => {
+    const imported = module as unknown as {
+      default?: PlyrConstructor
+    }
+    return imported.default ?? (module as unknown as PlyrConstructor)
+  })
   return plyrConstructorPromise
 }
 
@@ -56,7 +62,7 @@ function describeMediaError(media: HTMLMediaElement) {
 }
 
 function bindPlayerEvents(
-  player: Plyr,
+  player: PlyrInstance,
   media: HTMLElement,
   callbacks: BrowserPlayerCallbacks,
 ) {
@@ -77,7 +83,7 @@ function bindPlayerEvents(
 
 abstract class BaseBrowserAdapter implements PlayerAdapter {
   abstract readonly kind: PlayerSource['kind']
-  protected player: Plyr | null = null
+  protected player: PlyrInstance | null = null
 
   constructor(
     protected readonly host: HTMLElement,
