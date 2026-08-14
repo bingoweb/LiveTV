@@ -505,7 +505,7 @@ type GuideWorkspaceProps = {
 
 - [x] **Step 9: Run Guide/App/responsive/current-phase tests and web typecheck/build.** Final Task 6 evidence: 67/67 focused P6/shared/P4/App/responsive tests pass; shared + web typechecks exit 0; production web build succeeds. Self-review added RED→GREEN coverage for whitespace-separated M3U EPG URLs, per-source channel matching, unusable-empty XMLTV rejection, and minute clock ticks. WebTorrent remains separately lazy-loaded; the initial app chunk stays below the existing 500 kB warning threshold, while the pre-existing HLS chunk warning remains non-fatal.
 
-- [ ] **Step 10: Commit** with `feat: add functional XMLTV TV guide`.
+- [x] **Step 10: Commit** with `feat: add functional XMLTV TV guide`. Evidence: `3d603ba` contains the functional `/guide` UI, Guide routing/player handoff, P6 phase copy, scoped CSS, README update, and the Task 6 RED→GREEN coverage. Browser acceptance later found one no-cache error-message visibility gap; `c0cb2e9` fixes it with a dedicated regression test.
 
 ---
 
@@ -515,21 +515,21 @@ type GuideWorkspaceProps = {
 
 - Modify: `docs/superpowers/plans/2026-08-14-p6-xmltv-tv-guide.md` for evidence/checkmarks only.
 
-- [ ] **Step 1: Full local gate.** Run `npm run verify`, `git diff --check`, `docker compose config`, and direct secret scan on tracked changes. Existing non-fatal HLS chunk warning may remain; P6 must not add a new startup-size regression that defeats lazy media chunks.
+- [x] **Step 1: Full local gate.** `npm run verify` passes on `c0cb2e9`: 53 Vitest files / 233 tests, ESLint, all workspace TypeScript checks/builds, and the 21-dependency license policy exit 0. `git diff --check` and `docker compose config` pass. A real Google API-key-pattern scan finds no tracked `AIza…` secret and `.env` remains ignored/untracked. The pre-existing non-fatal HLS >500 kB chunk warning remains the only build warning.
 
-- [ ] **Step 2: Docker rebuild/health.** Preserve `YOUTUBE_DATA_API_KEY` without printing it, rebuild current web/api/media-worker/caddy services, verify root/API/media health, and confirm Halk TV still resolves via the official Data API path.
+- [x] **Step 2: Docker rebuild/health.** Rebuilt the stack from `c0cb2e9`; the existing YouTube key was transferred only through process env and never printed. Root, API health, and media health return HTTP 200. Halk TV resolves live with a real video ID. The official Data API remains configured and is attempted first, but the current upstream daily `search.list` quota returns 429, so the designed `live-page-fallback` path completes discovery instead of breaking playback.
 
-- [ ] **Step 3: Build deterministic EPG fixtures outside the repo** for acceptance: one URL-backed M3U with two channels and `url-tvg`, a multi-day XMLTV feed matching one channel by exact `tvg-id` and another by unique display name, plus an alternate failing/changed feed for stale-cache tests. Serve with controlled CORS behavior from a local fixture process.
+- [x] **Step 3: Build deterministic EPG fixtures outside the repo.** A local fixture service at `192.168.1.21:8098` served two-channel URL/paste M3U data, multi-day XMLTV, direct-CORS and CORS-blocked XMLTV variants, a controlled 503 mode, and a generated four-second VP9/Opus WebM for deterministic UnifiedPlayer playback. Fixture files/processes stayed outside the repository.
 
-- [ ] **Step 4: Browser direct-fetch acceptance.** In a fresh Chrome context, import/select the URL-backed M3U, open `/guide`, verify XMLTV load, exact + display-name matching, now/next, seven date tabs, programme detail, hard-navigation persistence, and one guide channel reaching the existing UnifiedPlayer.
+- [x] **Step 4: Browser direct-fetch acceptance.** Fresh Chrome acceptance imported the URL-backed two-channel M3U and loaded `direct.xml` with browser GET only; Network showed no `/api/epg/fetch`. Exact `tvg-id` and unique display-name matching both produced EPG rows, current/next programmes rendered, all seven date tabs worked, next-day programme details expanded, and hard navigation preserved local data. `Kanalı oynat` handed the selected channel to the existing UnifiedPlayer; the deterministic WebM reached `readyState=4`, played to its 4.008-second end, and had no media error.
 
-- [ ] **Step 5: Browser fallback acceptance.** Reconfigure fixture CORS so browser direct XMLTV fetch fails and start the Docker/API acceptance stack with `EPG_FETCH_ALLOWED_PRIVATE_HOSTS` containing only the deterministic fixture host. Verify `/api/epg/fetch` succeeds only when the EPG URL is declared by the playlist, and verify a second private host remains rejected. Remove the temporary acceptance override afterward; default production behavior stays public-network-only.
+- [x] **Step 5: Browser fallback acceptance.** With browser CORS blocked and temporary exact-host allowlist `192.168.1.21`, declared `fallback.xml` returned HTTP 200 through `/api/epg/fetch`, an undeclared EPG URL returned 400 `epg_not_declared_by_playlist`, and `127.0.0.1` remained 400 `unsafe_epg_url`. The browser then rendered `FALLBACK` current/next programme rows. The temporary private-host override was removed; final Docker API again returns 400 `unsafe_epg_url` for `192.168.1.21`, proving default production policy is restored.
 
-- [ ] **Step 6: Stale-cache acceptance.** After one successful guide load, make all EPG refresh paths fail; manual refresh must show a warning while the previously cached schedule remains rendered and playable.
+- [x] **Step 6: Stale-cache acceptance.** After a valid `DIRECT` guide load, the fixture switched direct XMLTV to controlled 503 while the default private fallback policy rejected the server path. Manual `Yenile` surfaced `XMLTV kaynaklarının hiçbiri alınamadı.` while the previous `DIRECT` schedule remained rendered and its channel remained playable.
 
-- [ ] **Step 7: File/paste-list acceptance.** Import a file/paste IPTV list, verify there is no API fallback, import local XMLTV file/gzip, confirm file-backed mode persists across navigation, and verify background freshness does not switch back to URL mode.
+- [x] **Step 7: File/paste-list acceptance.** A paste-backed IPTV list did not gain API fallback; failed direct XMLTV left both channels visible as `EPG yok`. Injecting a local XMLTV `File` switched the guide to `Dosyadan yüklenen rehber`, rendered `LOCAL` programme rows, and persisted that file-backed mode across hard navigation without background URL takeover. Plain-file browser acceptance is complemented by deterministic gzip magic-byte/decompression/50 MiB tests in the verified suite.
 
-- [ ] **Step 8: Regression acceptance.** Check YouTube live status, IPTV list route, Torrent workspace/session idle behavior, P3 History/Favorites/Playlists, and a separate clean browser context with no application console error/warn/issue.
+- [x] **Step 8: Regression acceptance.** A separate clean Chrome context navigated History → Playlists → IPTV → Torrent → YouTube → Guide. YouTube showed Halk TV live and ANKA offline; P3/P4/P5 route shells remained functional. Preserved console inspection after the route sequence reported zero `error`, zero `warn`, and zero `issue` messages. A second isolated context proved the no-cache Guide fetch failure now renders a visible alert after `c0cb2e9`.
 
 - [ ] **Step 9: Record evidence and commit** with `chore: complete P6 XMLTV guide milestone`.
 
@@ -539,19 +539,19 @@ type GuideWorkspaceProps = {
 
 ## Exit Criteria
 
-- [ ] `/guide` is functional rather than placeholder content.
-- [ ] Existing P4 `epgUrls` and `tvg-id` metadata drive Guide data without changing IPTV source-of-truth semantics.
-- [ ] `fast-xml-parser` shared parser handles XMLTV identifiers, dates, metadata, warnings, and stop-time inference deterministically.
-- [ ] Plain and gzip XMLTV are supported within the 50 MiB decompressed limit.
-- [ ] Direct browser XMLTV fetch is preferred.
-- [ ] URL-backed lists have a verified, public-network-only API fallback that independently validates playlist-declared EPG URLs.
-- [ ] File/paste IPTV lists never gain an arbitrary server URL-fetch path and can use local XMLTV files.
-- [ ] `livetv-epg` persists normalized schedules, uses transactional replacement, and survives reloads.
-- [ ] Failed refreshes preserve stale valid cache.
-- [ ] File-backed guide mode is not silently overwritten by background URL refresh.
-- [ ] Channel matching is explicit, deterministic, and ambiguity-safe.
-- [ ] Current, next, and seven-day programme schedules render for matched channels.
-- [ ] Unmatched channels remain visible and playable.
-- [ ] Guide channel playback reuses the existing P4/UnifiedPlayer request path.
-- [ ] P2/P3/P4/P5 regressions remain clean.
+- [x] `/guide` is functional rather than placeholder content.
+- [x] Existing P4 `epgUrls` and `tvg-id` metadata drive Guide data without changing IPTV source-of-truth semantics.
+- [x] `fast-xml-parser` shared parser handles XMLTV identifiers, dates, metadata, warnings, and stop-time inference deterministically.
+- [x] Plain and gzip XMLTV are supported within the 50 MiB decompressed limit.
+- [x] Direct browser XMLTV fetch is preferred.
+- [x] URL-backed lists have a verified, public-network-only API fallback that independently validates playlist-declared EPG URLs.
+- [x] File/paste IPTV lists never gain an arbitrary server URL-fetch path and can use local XMLTV files.
+- [x] `livetv-epg` persists normalized schedules, uses transactional replacement, and survives reloads.
+- [x] Failed refreshes preserve stale valid cache.
+- [x] File-backed guide mode is not silently overwritten by background URL refresh.
+- [x] Channel matching is explicit, deterministic, and ambiguity-safe.
+- [x] Current, next, and seven-day programme schedules render for matched channels.
+- [x] Unmatched channels remain visible and playable.
+- [x] Guide channel playback reuses the existing P4/UnifiedPlayer request path.
+- [x] P2/P3/P4/P5 regressions remain clean.
 - [ ] Full local verification, Docker/API/browser acceptance, GitHub CI, merge, and final-main verification pass.
