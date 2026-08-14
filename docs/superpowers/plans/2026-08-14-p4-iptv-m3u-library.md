@@ -250,13 +250,13 @@ export type IptvController = {
 }
 ```
 
-- [ ] **Step 1: Write controller RED tests** using a small memory repository/import-service seam. Prove initialize loads lists + first list channels, import selects the new list, selecting lists swaps channel state, delete chooses a remaining list or null, and repository initialization failure becomes `unavailable`.
-- [ ] **Step 2: Add refresh-failure RED test** proving a failed URL fetch leaves the current stored list/channels visible and exposes a non-destructive error message.
-- [ ] **Step 3: Run focused test and confirm RED.**
-- [ ] **Step 4: Implement controller snapshot/subscription operations** and `IptvProvider`/`useIptv()` using `useSyncExternalStore`, following the P3 library context pattern without sharing repositories.
-- [ ] **Step 5: Wrap application content with `IptvProvider` inside/alongside the existing `LibraryProvider`** so all routes continue to render if IPTV storage is unavailable.
-- [ ] **Step 6: Run context tests, existing `App.test.tsx`, and web typecheck**; confirm PASS.
-- [ ] **Step 7: Commit** with `feat: expose IPTV library state to React`.
+- [x] **Step 1: Write controller RED tests** using a small memory repository/import-service seam. Prove initialize loads lists + first list channels, import selects the new list, selecting lists swaps channel state, delete chooses a remaining list or null, and repository initialization failure becomes `unavailable`.
+- [x] **Step 2: Add refresh-failure RED test** proving a failed URL fetch leaves the current stored list/channels visible and exposes a non-destructive error message.
+- [x] **Step 3: Run focused test and confirm RED.**
+- [x] **Step 4: Implement controller snapshot/subscription operations** and `IptvProvider`/`useIptv()` using `useSyncExternalStore`, following the P3 library context pattern without sharing repositories.
+- [x] **Step 5: Wrap application content with `IptvProvider` inside/alongside the existing `LibraryProvider`** so all routes continue to render if IPTV storage is unavailable.
+- [x] **Step 6: Run context tests, existing `App.test.tsx`, and web typecheck**; confirm PASS. Evidence: 10/10 focused + App tests, web typecheck exit 0.
+- [x] **Step 7: Commit** with `feat: expose IPTV library state to React`.
 
 ---
 

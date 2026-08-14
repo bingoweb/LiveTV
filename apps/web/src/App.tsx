@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation'
 import { RouteContent } from './components/RouteContent'
 import { SettingsShell } from './components/SettingsShell'
 import { UnifiedPlayer } from './components/UnifiedPlayer'
+import { IptvProvider } from './iptv/iptv-context'
 import { LibraryProvider } from './library/library-context'
 import {
   createPlayerOpenRequest,
@@ -62,7 +63,8 @@ export function App({ initialPath }: AppProps) {
 
   return (
     <LibraryProvider>
-      <div className="app-shell">
+      <IptvProvider>
+        <div className="app-shell">
         <a className="skip-link" href="#main-content">
           İçeriğe geç
         </a>
@@ -111,7 +113,8 @@ export function App({ initialPath }: AppProps) {
             </section>
           </main>
         </div>
-      </div>
+        </div>
+      </IptvProvider>
     </LibraryProvider>
   )
 }
