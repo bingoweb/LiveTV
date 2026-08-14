@@ -277,6 +277,7 @@ export type EpgSourceRecord = {
   listId: string
   sourceType: 'url' | 'file'
   sourceUrl?: string
+  position: number
   fetchedAt: number
   channelCount: number
   programmeCount: number
@@ -303,29 +304,29 @@ export interface EpgRepository {
 }
 ```
 
-- [ ] **Step 1: Write repository RED tests** with `fake-indexeddb` proving database/store/index creation, transactional multi-source replacement, replacement rollback on an injected write failure, 12-hour/8-day retention filtering, readback, file-vs-url source metadata, list-cache deletion, orphan cleanup, and malformed stored rows being skipped rather than crashing the whole guide.
+- [x] **Step 1: Write repository RED tests** with `fake-indexeddb` covering ordered multi-source persistence, transactional rollback, 12-hour/8-day retention, deletion/orphan cleanup, and malformed stored-row filtering. The tests exercise the list/source indexes through real IndexedDB reads.
 
-- [ ] **Step 2: Run** `npx vitest run apps/web/src/guide/epg-repository.test.ts`; confirm RED.
+- [x] **Step 2: Run** the repository/matcher/derivation tests; RED was confirmed because the P6 guide modules did not exist.
 
-- [ ] **Step 3: Implement `epg-db.ts` and repository** with `sources`, `channels`, and `programmes` object stores. Use deterministic ids derived from source/list/xmltv identity; keep each refresh replacement inside one readwrite transaction and apply the retention window before writes.
+- [x] **Step 3: Implement `epg-db.ts` and repository** with `sources`, `channels`, and `programmes`, deterministic ids, source ordering, per-operation DB lifecycle, one-transaction replacement, retention filtering, defensive row guards, and best-effort orphan cleanup.
 
-- [ ] **Step 4: Write channel matcher RED tests** for exact id, unique case-folded id, unique `tvgName` fallback, IPTV `name` fallback, ambiguity rejection, weak-match claim collision, and unmatched output. Include punctuation/whitespace normalization without stripping `HD`, `4K`, numbers, or regional words.
+- [x] **Step 4: Write channel matcher RED tests** for exact id across sources, unique folded id, `tvgName`/name fallback, ambiguity, meaningful HD/4K preservation, and weak-claim collision.
 
-- [ ] **Step 5: Implement `matchIptvChannelsToXmltv()`** returning one row per P4 IPTV channel with either a matched XMLTV id/match reason or `null`. Strong exact matches may legitimately share schedules only when the IPTV records themselves carry the same explicit `tvgId`; weak fallback may not silently claim an XMLTV channel twice.
+- [x] **Step 5: Implement `matchIptvChannelsToXmltv()`** returning one row per IPTV channel plus all source-specific XMLTV channel records for a logical match. Exact ids may span multiple sources; folded/display-name fallbacks remain uniqueness- and claim-safe.
 
 ```ts
 export type ChannelGuideMatch = {
   channel: IptvChannel
-  xmltvId: string | null
+  xmltvChannels: EpgChannelRecord[]
   match: 'exact-id' | 'folded-id' | 'display-name' | 'none'
 }
 ```
 
-- [ ] **Step 6: Write guide derivation RED tests** for current programme, next programme, programme progress, selected-day filtering in local timezone, source-order programme merge, second-stage dedupe by `(iptv channel id,startAt,stopAt,title)`, and unmatched channels remaining in output.
+- [x] **Step 6: Write guide derivation RED tests** for current/next/progress, selected-day filtering, source-order dedupe, and unmatched-channel retention.
 
-- [ ] **Step 7: Implement pure `deriveGuideRows()`** with injected `now` and local date-key helpers. It consumes P4 IPTV channels plus cached XMLTV records and produces UI-ready rows; it must not call IndexedDB or player code.
+- [x] **Step 7: Implement pure `deriveGuideRows()`** with injected clock/date-key seams. It merges source-specific matches by persisted source position, performs IPTV-level programme dedupe, and emits UI-ready current/next/day rows without IndexedDB/player dependencies.
 
-- [ ] **Step 8: Run repository/matcher/derivation tests and web typecheck**; confirm GREEN.
+- [x] **Step 8: Run repository/matcher/derivation tests and web typecheck.** Evidence: 13/13 focused tests pass and web typecheck exits 0. During the first run, a hanging readonly transaction exposed a DB-lifecycle mismatch versus P4; the repository was corrected to open/close per operation and attach completion listeners before requests.
 
 - [ ] **Step 9: Commit** with `feat: add persistent EPG guide cache`.
 

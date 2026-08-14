@@ -240,6 +240,7 @@ type EpgSourceRecord = {
   listId: string
   sourceType: 'url' | 'file'
   sourceUrl?: string
+  position: number
   fetchedAt: number
   channelCount: number
   programmeCount: number
@@ -279,6 +280,7 @@ type EpgProgrammeRecord = {
 Useful indexes:
 
 - `sources.listId`;
+- `sources.[listId, position]`;
 - `channels.sourceKey`;
 - `channels.xmltvId`;
 - `programmes.sourceKey`;
@@ -334,6 +336,8 @@ Merge rules:
 After XMLTV channels are mapped to IPTV channels, the derived Guide rows perform a second dedupe by `(iptv channel id, startAt, stopAt, normalized title)`. This prevents two declared EPG feeds that use different XMLTV channel ids for the same IPTV channel from rendering duplicate programmes.
 
 Local XMLTV file import replaces the combined cache for the selected IPTV list as a single file-backed source until the user explicitly chooses **URL'lerden yenile**.
+
+The `sources.position` field persists declared source order so the same precedence remains deterministic after a reload.
 
 ## Guide controller boundary
 
