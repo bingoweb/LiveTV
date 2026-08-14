@@ -697,6 +697,230 @@ a:focus-visible,
   padding-bottom: 4px;
 }
 
+.iptv-library-panel {
+  gap: 16px;
+}
+
+.iptv-library-heading {
+  padding-bottom: 2px;
+}
+
+.iptv-import-card,
+.iptv-list-card,
+.iptv-channel-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+}
+
+.iptv-field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.iptv-field input,
+.iptv-field select,
+.iptv-import-row input,
+.iptv-paste-import textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  padding: 9px 10px;
+}
+
+.iptv-paste-import textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.iptv-import-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.iptv-import-row button,
+.iptv-file-button,
+.iptv-paste-import button,
+.iptv-list-actions button,
+.iptv-channel-row button,
+.iptv-show-more {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-hover);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.iptv-import-row button,
+.iptv-paste-import button,
+.iptv-list-actions button,
+.iptv-channel-row button,
+.iptv-show-more {
+  padding: 8px 11px;
+}
+
+.iptv-import-row button:disabled,
+.iptv-file-button:has(input:disabled),
+.iptv-paste-import button:disabled,
+.iptv-list-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.iptv-file-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 11px;
+  font-size: 0.82rem;
+}
+
+.iptv-file-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.iptv-paste-import {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.iptv-paste-import summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.iptv-paste-import form {
+  display: grid;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.iptv-action-message {
+  margin: 0;
+  border-radius: 9px;
+  background: var(--green-soft);
+  color: var(--green);
+  padding: 8px 10px;
+  font-size: 0.78rem;
+}
+
+.iptv-action-message.is-error {
+  background: var(--pink-soft);
+  color: var(--pink);
+}
+
+.iptv-active-list-summary {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 11px;
+}
+
+.iptv-active-list-summary > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.iptv-active-list-summary strong,
+.iptv-active-list-summary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iptv-active-list-summary small {
+  color: var(--text-secondary);
+}
+
+.iptv-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.iptv-channel-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.55fr);
+  gap: 8px;
+}
+
+.iptv-channel-list {
+  display: grid;
+  gap: 7px;
+}
+
+.iptv-channel-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--bg-elevated);
+  padding: 8px;
+}
+
+.iptv-channel-logo {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.iptv-channel-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.iptv-channel-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.iptv-channel-copy strong,
+.iptv-channel-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iptv-channel-copy strong {
+  font-size: 0.84rem;
+}
+
+.iptv-channel-copy small {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.iptv-show-more {
+  width: 100%;
+}
+
 .library-unavailable,
 .library-stack,
 .library-entry {

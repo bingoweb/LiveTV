@@ -1,13 +1,16 @@
+import type { IptvChannel } from '../iptv/iptv-repository'
 import type { NavigationItem } from '../navigation'
 import type { LibrarySource } from '../library/library-types'
 import { AppIcon } from './AppIcon'
 import { HistoryLibrary } from './HistoryLibrary'
+import { IptvLibrary } from './IptvLibrary'
 import { PlaylistsLibrary } from './PlaylistsLibrary'
 
 type RouteContentProps = {
   route: NavigationItem
   onNavigate: (path: string) => void
   onPlaySource?: (source: LibrarySource) => void
+  onPlayIptvChannel?: (channel: IptvChannel) => void
 }
 
 const sourceHints: Record<
@@ -31,7 +34,7 @@ const sourceHints: Record<
   },
   iptv: {
     title: 'M3U / M3U8 listesi',
-    hint: 'Tek HLS yayın URL’si şimdi açılır; M3U kanal listeleri P4’te gelecek.',
+    hint: 'M3U kanal listelerini içe aktar, cihazda sakla ve kanalları oynat.',
     action: 'IPTV listesi ekle',
   },
   torrent: {
@@ -186,6 +189,7 @@ export function RouteContent({
   route,
   onNavigate,
   onPlaySource = () => {},
+  onPlayIptvChannel = () => {},
 }: RouteContentProps) {
   if (route.id === 'history') {
     return <HistoryLibrary onPlaySource={onPlaySource} />
@@ -193,6 +197,10 @@ export function RouteContent({
 
   if (route.id === 'playlists') {
     return <PlaylistsLibrary onPlaySource={onPlaySource} />
+  }
+
+  if (route.id === 'iptv') {
+    return <IptvLibrary onPlayChannel={onPlayIptvChannel} />
   }
 
   return (

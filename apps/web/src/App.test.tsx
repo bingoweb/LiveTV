@@ -26,6 +26,14 @@ describe('App', () => {
     expect(markup).toContain('unified-player')
   })
 
+  it('renders the functional IPTV library route instead of the old P4 placeholder', () => {
+    const markup = renderToStaticMarkup(<App initialPath="/iptv" />)
+
+    expect(markup).toContain('IPTV kütüphanesi yükleniyor')
+    expect(markup).not.toContain('M3U kanal listeleri P4’te gelecek')
+    expect(markup).toContain('unified-player')
+  })
+
   it('exposes featured live YouTube channels and Premium session support', () => {
     const markup = renderToStaticMarkup(<App initialPath="/youtube" />)
 

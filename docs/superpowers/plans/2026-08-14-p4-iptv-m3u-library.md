@@ -314,15 +314,15 @@ export function playerPreferenceForIptvChannel(
 
 `.m3u8` pathname -> `hls`; other HTTP(S) streams -> `auto`.
 
-- [ ] **Step 1: Write player-request RED tests** proving P3 saved-source semantics remain unchanged and IPTV `.m3u8`/extensionless streams generate the correct common request.
-- [ ] **Step 2: Implement common request module** and keep `library-player-request.ts` as a compatibility wrapper/re-export where useful so existing tests/callers transition cleanly.
-- [ ] **Step 3: Write `IptvLibraryView` RED render tests** for ready, loading, unavailable, stored-list metadata, URL-only refresh button, search/group controls, result count, first-200 limit, and `Daha fazla göster` visibility.
-- [ ] **Step 4: Implement `IptvLibrary` container/view** with URL import, hidden file input, paste section, selected list, search/group filtering via Task 1 helpers, 200-row paging, refresh, delete, and per-channel **Oynat** action.
-- [ ] **Step 5: Route `/iptv` to `IptvLibrary`** instead of the generic `SourceContent`. Keep the right-side UnifiedPlayer visible.
-- [ ] **Step 6: Update `App` replay coordination** so History/Playlist and IPTV both create common `PlayerOpenRequest`s. Update `UnifiedPlayer` to consume `request.url`, `request.preference`, and optional metadata once per request ID. Preserve direct manual URL behavior.
-- [ ] **Step 7: Ensure the active IPTV source's title/logo metadata flows into P3 history/favorites** after real `playing`, without creating a duplicate history path.
-- [ ] **Step 8: Run** player-request, IPTV UI, App, P3 library, UnifiedPlayer-related tests and web typecheck; confirm PASS.
-- [ ] **Step 9: Commit** with `feat: add functional IPTV channel library`.
+- [x] **Step 1: Write player-request RED tests** proving P3 saved-source semantics remain unchanged and IPTV `.m3u8`/extensionless streams generate the correct common request.
+- [x] **Step 2: Implement common request module** and keep `library-player-request.ts` as a compatibility wrapper/re-export where useful so existing tests/callers transition cleanly.
+- [x] **Step 3: Write `IptvLibraryView` RED render tests** for ready, loading, unavailable, stored-list metadata, URL-only refresh button, search/group controls, result count, first-200 limit, and `Daha fazla göster` visibility.
+- [x] **Step 4: Implement `IptvLibrary` container/view** with URL import, hidden file input, paste section, selected list, search/group filtering via Task 1 helpers, 200-row paging, refresh, delete, and per-channel **Oynat** action.
+- [x] **Step 5: Route `/iptv` to `IptvLibrary`** instead of the generic `SourceContent`. Keep the right-side UnifiedPlayer visible.
+- [x] **Step 6: Update `App` replay coordination** so History/Playlist and IPTV both create common `PlayerOpenRequest`s. Update `UnifiedPlayer` to consume `request.url`, `request.preference`, and optional metadata once per request ID. Preserve direct manual URL behavior.
+- [x] **Step 7: Ensure the active IPTV source's title/logo metadata flows into P3 history/favorites** after real `playing`, without creating a duplicate history path.
+- [x] **Step 8: Run** player-request, IPTV UI, App, P3 library, UnifiedPlayer-related tests and web typecheck; confirm PASS. Evidence: 21/21 focused + responsive tests, web typecheck exit 0.
+- [x] **Step 9: Commit** with `feat: add functional IPTV channel library`.
 
 ---
 

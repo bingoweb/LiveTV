@@ -9,10 +9,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLibrary } from '../library/library-context'
-import {
-  playerPreferenceForLibrarySource,
-  type PlayerOpenRequest,
-} from '../library/library-player-request'
 import { shouldRecordPlayback } from '../library/playback-history-session'
 import { toLibrarySource } from '../library/library-types'
 import type { NavigationItem } from '../navigation'
@@ -21,6 +17,7 @@ import {
   type BrowserPlayerState,
 } from '../player/browser-adapters'
 import type { YouTubeEmbedMode } from '../player/player-config'
+import type { PlayerOpenRequest } from '../player/player-open-request'
 import { loadYouTubeChannelWithRecovery } from '../player/youtube-live-recovery'
 import {
   readYouTubeEmbedMode,
@@ -41,6 +38,10 @@ type UnifiedPlayerProps = {
 }
 
 type PlayerUiState = 'idle' | BrowserPlayerState | 'error'
+type OpenRequestMetadata = Pick<
+  PlayerOpenRequest,
+  'title' | 'thumbnailUrl' | 'channelUrl'
+>
 
 const sourceKindLabels: Record<PlayerSource['kind'], string> = {
   direct: 'Direct media',
@@ -95,6 +96,8 @@ export function UnifiedPlayer({
   const [qualities, setQualities] = useState<readonly PlayerQuality[]>([])
   const [selectedQuality, setSelectedQuality] = useState(-1)
   const [error, setError] = useState<string | null>(null)
+  const [activeMetadata, setActiveMetadata] =
+    useState<OpenRequestMetadata | null>(null)
 
   const librarySource = useMemo(() => {
     if (!source) return null
@@ -105,25 +108,38 @@ export function UnifiedPlayer({
           status.status === 'live' && status.videoId === source.videoId,
       )
       return toLibrarySource(source, {
-        title: liveStatus?.title ?? 'YouTube yayını',
-        ...(liveStatus?.thumbnailUrl
-          ? { thumbnailUrl: liveStatus.thumbnailUrl }
+        title: activeMetadata?.title ?? liveStatus?.title ?? 'YouTube yayını',
+        ...(activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl
+          ? {
+              thumbnailUrl:
+                activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl,
+            }
           : {}),
-        ...(liveStatus?.channel.url
-          ? { channelUrl: liveStatus.channel.url }
+        ...(activeMetadata?.channelUrl ?? liveStatus?.channel.url
+          ? {
+              channelUrl:
+                activeMetadata?.channelUrl ?? liveStatus?.channel.url,
+            }
           : {}),
       })
     }
 
     return toLibrarySource(source, {
       title:
-        source.kind === 'hls'
+        activeMetadata?.title ??
+        (source.kind === 'hls'
           ? 'HLS yayını'
           : source.mediaType === 'audio'
             ? 'Ses kaynağı'
-            : 'Video kaynağı',
+            : 'Video kaynağı'),
+      ...(activeMetadata?.thumbnailUrl
+        ? { thumbnailUrl: activeMetadata.thumbnailUrl }
+        : {}),
+      ...(activeMetadata?.channelUrl
+        ? { channelUrl: activeMetadata.channelUrl }
+        : {}),
     })
-  }, [liveChannelStatuses, source])
+  }, [activeMetadata, liveChannelStatuses, source])
 
   useEffect(() => {
     const decision = shouldRecordPlayback(
@@ -242,6 +258,7 @@ export function UnifiedPlayer({
   const openSource = async (
     requestedUrl = url,
     requestedPreference = preference,
+    metadata: OpenRequestMetadata | null = null,
   ) => {
     const controller = controllerRef.current
     if (!controller) return
@@ -251,6 +268,7 @@ export function UnifiedPlayer({
     setQualities([])
     setSelectedQuality(-1)
     setSource(null)
+    setActiveMetadata(metadata)
 
     try {
       await controller.destroy()
@@ -279,10 +297,15 @@ export function UnifiedPlayer({
     }
 
     consumedOpenRequestIdRef.current = openRequest.id
-    const nextPreference = playerPreferenceForLibrarySource(openRequest.source)
-    setUrl(openRequest.source.url)
-    setPreference(nextPreference)
-    void openSource(openRequest.source.url, nextPreference)
+    setUrl(openRequest.url)
+    setPreference(openRequest.preference)
+    void openSource(openRequest.url, openRequest.preference, {
+      ...(openRequest.title ? { title: openRequest.title } : {}),
+      ...(openRequest.thumbnailUrl
+        ? { thumbnailUrl: openRequest.thumbnailUrl }
+        : {}),
+      ...(openRequest.channelUrl ? { channelUrl: openRequest.channelUrl } : {}),
+    })
   }, [openRequest])
 
   const togglePlayback = async () => {
