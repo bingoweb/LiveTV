@@ -46,6 +46,7 @@ export function LibrarySourceActionsView({
       {library.playlists.length > 0 ? (
         <div className="library-source-playlist-row">
           <select
+            name="library-source-playlist"
             aria-label="Playlist seç"
             disabled={disabled}
             value={selectedPlaylistId}
@@ -69,6 +70,7 @@ export function LibrarySourceActionsView({
 
       <div className="library-source-create-row">
         <input
+          name="library-source-new-playlist"
           aria-label="Yeni playlist"
           maxLength={80}
           value={newPlaylistName}

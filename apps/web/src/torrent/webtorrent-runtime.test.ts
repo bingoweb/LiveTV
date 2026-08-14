@@ -53,7 +53,7 @@ class FakeClient {
 
 function registration(state: ServiceWorkerState = 'activated') {
   return {
-    scope: 'http://localhost:8080/webtorrent/',
+    scope: 'http://localhost:8080/',
     active: { state },
     installing: null,
     waiting: null,
@@ -87,21 +87,21 @@ describe('browser WebTorrent runtime', () => {
     ).rejects.toThrow('WebRTC')
   })
 
-  it('registers the narrow worker and creates one browser server with it', async () => {
+  it('uses the root PWA worker as the WebTorrent browser server controller', async () => {
     const register = vi.fn(async () => registration())
-    const runtime = await createBrowserWebTorrentRuntime({
+    await createBrowserWebTorrentRuntime({
       serviceWorkers: { register },
       loadWebTorrent: async () =>
         FakeClient as unknown as WebTorrentConstructorLike,
     })
 
-    expect(register).toHaveBeenCalledWith('/webtorrent/sw.js', {
-      scope: '/webtorrent/',
+    expect(register).toHaveBeenCalledWith('/sw.js', {
+      scope: '/',
     })
     expect(FakeClient.lastInstance?.createServerCalls).toEqual([
       {
         controller: expect.objectContaining({
-          scope: expect.stringContaining('/webtorrent/'),
+          scope: 'http://localhost:8080/',
         }),
       },
     ])
@@ -121,7 +121,7 @@ describe('browser WebTorrent runtime', () => {
       removeEventListener: vi.fn(),
     }
     const pendingRegistration = {
-      scope: 'http://localhost:8080/webtorrent/',
+      scope: 'http://localhost:8080/',
       active: null,
       waiting: null,
       installing: worker,

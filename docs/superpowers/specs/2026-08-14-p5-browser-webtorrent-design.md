@@ -20,20 +20,20 @@ The implementation should prefer the browser-ready WebTorrent distribution expos
 
 ## Service-worker architecture
 
-LiveTV already owns `/sw.js` at root scope for PWA shell/static caching. P5 must not replace or merge generated WebTorrent code into that worker.
+LiveTV already owns `/sw.js` at root scope for PWA shell/static caching. Browser acceptance proved that WebTorrent must use that **same root registration**: Service Worker scope determines which client pages are controlled, so a second worker registered only for `/webtorrent/` cannot intercept media requests initiated by the `/torrent` page.
 
-Instead:
+P5 therefore uses one root registration with two fetch listeners:
 
-- the existing LiveTV PWA worker stays at scope `/`;
-- the official WebTorrent worker is served at `/webtorrent/sw.js`;
-- that worker is registered with the narrower scope `/webtorrent/`;
-- WebTorrent `client.createServer({ controller: registration })` uses that registration;
-- selected torrent files receive same-origin `/webtorrent/webtorrent/...` streaming URLs (LiveTV's worker scope plus WebTorrent BrowserServer's own `webtorrent` segment);
-- requests under `/webtorrent/` are therefore handled by the more-specific WebTorrent worker rather than the LiveTV shell worker.
+- the existing LiveTV PWA worker remains registered at scope `/`;
+- the official WebTorrent worker source is still served separately at `/webtorrent/sw.js` from the installed package;
+- root `/sw.js` loads that official bridge with `importScripts('/webtorrent/sw.js')` rather than copying the minified worker into repository source;
+- WebTorrent `client.createServer({ controller: rootRegistration })` uses the root registration;
+- WebTorrent BrowserServer exposes selected files as same-origin `/webtorrent/<info-hash>/<file-path>` URLs;
+- LiveTV's own cache listener explicitly returns for `/webtorrent/` requests, while the imported official WebTorrent listener handles stream/Range requests.
 
-The official worker source must come from the installed `webtorrent` package, not a CDN. Vite development/build plumbing may serve and emit that package worker at the stable `/webtorrent/sw.js` URL so the repository does not carry a silently stale copied minified worker.
+The official bridge source must come from the installed `webtorrent` package, not a CDN. Vite development/build plumbing serves and emits that package worker at the stable `/webtorrent/sw.js` URL so the repository does not carry a silently stale copied minified worker.
 
-The build must include a regression test that the emitted/served worker plumbing exists and that the root PWA worker remains unchanged in its media-cache boundary.
+The build must include regression tests proving the bridge is emitted, root `/sw.js` imports it, and LiveTV's cache handler still excludes API/media/torrent payloads.
 
 ## Torrent inputs
 
@@ -107,8 +107,8 @@ Initialization:
 1. verify `navigator.serviceWorker` support;
 2. dynamically import WebTorrent;
 3. verify `WebTorrent.WEBRTC_SUPPORT`;
-4. register `/webtorrent/sw.js` with scope `/webtorrent/`;
-5. wait for that specific registration's active worker rather than relying on root-scope `navigator.serviceWorker.ready`;
+4. register/reuse root `/sw.js` with scope `/`;
+5. wait for that root registration's active worker;
 6. create one WebTorrent client;
 7. always attach a client-level `error` listener;
 8. call `client.createServer({ controller: registration })` once.
@@ -167,7 +167,7 @@ Selection rules:
 - otherwise the user explicitly chooses a file;
 - selecting a file deselects other files where practical and selects/prioritizes the chosen file.
 
-`file.streamURL` becomes available through the dedicated WebTorrent service worker/server.
+`file.streamURL` becomes available through WebTorrent's BrowserServer using the root PWA registration and imported official bridge.
 
 ## Existing UnifiedPlayer handoff
 
@@ -178,7 +178,7 @@ Torrent data transport and media playback stay separate:
 
 ```ts
 type TorrentPlaybackDescriptor = {
-  streamUrl: string // /webtorrent/webtorrent/...
+  streamUrl: string // /webtorrent/<info-hash>/<file-path>
   preference: 'direct-video' | 'direct-audio'
   title: string
   librarySource: TorrentLibrarySource
@@ -192,7 +192,7 @@ No second `<video>` player or torrent-specific player controls are introduced.
 
 ## P3 History / Favorites / Playlists integration
 
-The transient `/webtorrent/webtorrent/...` stream URL is not a valid persistent identity. P5 extends `LibrarySource` with a torrent variant:
+The transient `/webtorrent/...` stream URL is not a valid persistent identity. P5 extends `LibrarySource` with a torrent variant:
 
 ```ts
 type TorrentLibrarySource = {
@@ -270,7 +270,7 @@ Always show a compact note:
 
 ## PWA behavior
 
-The root LiveTV service worker must continue to avoid caching media/API/torrent payloads. The dedicated `/webtorrent/` worker exists solely to provide WebTorrent's range/stream bridge and must not be added to the PWA shell cache.
+The root LiveTV service worker must continue to avoid caching media/API/torrent payloads. It imports the official WebTorrent bridge solely to handle `/webtorrent/` range/stream requests; the LiveTV shell-cache listener bypasses those paths.
 
 WebTorrent stream URLs are never stored for offline playback.
 
@@ -290,7 +290,7 @@ WebTorrent stream URLs are never stored for offline playback.
 Use a fake WebTorrent runtime seam rather than live peers for deterministic tests:
 
 - unsupported WebRTC/service-worker state;
-- initialization registers `/webtorrent/sw.js` with `/webtorrent/` scope;
+- initialization registers/reuses root `/sw.js` with `/` scope;
 - adding magnet/file;
 - metadata snapshot;
 - noPeers advisory behavior;
@@ -311,7 +311,7 @@ Use a fake WebTorrent runtime seam rather than live peers for deterministic test
 
 - `webtorrent` is a direct approved-license dependency;
 - Vite can serve/emit `/webtorrent/sw.js` from the installed package;
-- root `/sw.js` cache rules still exclude media;
+- root `/sw.js` imports `/webtorrent/sw.js` and its LiveTV cache rules still exclude media/torrent streams;
 - production build succeeds with WebTorrent dynamically split from initial application code.
 
 ### Browser acceptance
@@ -322,7 +322,7 @@ Use the Creative Commons Sintel WebTorrent sample from the WebTorrent project's 
 2. add the documented Sintel magnet URI;
 3. wait for metadata/file list;
 4. select the MP4 media file;
-5. verify the existing UnifiedPlayer loads a `/webtorrent/webtorrent/...` stream URL and reaches ready/playing;
+5. verify the existing UnifiedPlayer loads a `/webtorrent/<info-hash>/<file-path>` stream URL and reaches ready/playing;
 6. verify peer/progress stats update where the environment allows;
 7. add the source to Favorite/History and verify the stored identity is magnet + file path rather than stream URL;
 8. replay from History and verify the torrent route/session is rebuilt;
@@ -347,7 +347,7 @@ Public swarm availability is an external dependency, so deterministic automated 
 
 - Magnet URI and local `.torrent` input initialize Browser WebTorrent.
 - HTTP(S) `.torrent` URL is accepted without a server proxy.
-- Dedicated `/webtorrent/` service worker coexists with the LiveTV root PWA worker.
+- Root `/sw.js` imports the official `/webtorrent/sw.js` bridge and remains the single LiveTV Service Worker registration.
 - Torrent metadata/files/status are visible in `/torrent`.
 - Supported torrent media files stream through the existing UnifiedPlayer.
 - Only one active torrent session exists and Stop destroys its store best-effort.

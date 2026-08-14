@@ -5,8 +5,9 @@ import { describe, expect, it } from 'vitest'
 import {
   readWebTorrentWorkerSource,
   resolveWebTorrentWorkerPath,
-  WEBTORRENT_WORKER_SCOPE,
-  WEBTORRENT_WORKER_URL,
+  PWA_WORKER_SCOPE,
+  PWA_WORKER_URL,
+  WEBTORRENT_BRIDGE_URL,
 } from '../../vite.webtorrent-worker'
 
 describe('WebTorrent service-worker build plumbing', () => {
@@ -26,8 +27,9 @@ describe('WebTorrent service-worker build plumbing', () => {
     expect(source).toContain('addEventListener("fetch"')
   })
 
-  it('uses a stable narrow worker URL and scope', () => {
-    expect(WEBTORRENT_WORKER_URL).toBe('/webtorrent/sw.js')
-    expect(WEBTORRENT_WORKER_SCOPE).toBe('/webtorrent/')
+  it('emits the official bridge separately while WebTorrent uses the root PWA worker', () => {
+    expect(WEBTORRENT_BRIDGE_URL).toBe('/webtorrent/sw.js')
+    expect(PWA_WORKER_URL).toBe('/sw.js')
+    expect(PWA_WORKER_SCOPE).toBe('/')
   })
 })

@@ -29,6 +29,7 @@ describe('LiveTV PWA assets', () => {
   it('keeps API and media traffic outside the service-worker cache path', () => {
     const serviceWorker = readFileSync('apps/web/public/sw.js', 'utf8')
 
+    expect(serviceWorker).toContain("self.importScripts('/webtorrent/sw.js')")
     expect(serviceWorker).toContain("url.pathname.startsWith('/api/')")
     expect(serviceWorker).toContain("url.pathname.startsWith('/media/')")
     expect(serviceWorker).toContain("url.pathname.startsWith('/webtorrent/')")

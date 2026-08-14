@@ -4,7 +4,7 @@ LiveTV is a browser-first media player project designed as a single interface fo
 
 ## Current status
 
-The repository is in **P4 — IPTV / M3U Library**. The responsive PWA shell, P2 unified playback engine, and P3 guest library are now connected to a persistent browser-first IPTV channel library.
+The repository is in **P5 — Browser WebTorrent Streaming**. The responsive PWA shell, P2 unified playback engine, P3 guest library, and P4 IPTV/M3U library are now connected to a browser-native WebTorrent workspace that still uses the same UnifiedPlayer for media playback.
 
 The current implementation includes:
 
@@ -44,8 +44,15 @@ The current implementation includes:
 - IPTV channel playback through the same unified player used by direct media, HLS, YouTube, History, and Playlists,
 - IPTV channel title/logo metadata flowing into the existing P3 history/favorites behavior after real playback begins,
 - non-fatal M3U parse warnings surfaced without rejecting otherwise valid playlists.
+- browser-native WebTorrent input from magnet URIs, local `.torrent` metadata files, and HTTP(S) `.torrent` URLs,
+- the official `/webtorrent/sw.js` WebTorrent stream bridge imported by LiveTV's existing root `/sw.js` worker, so one root registration owns both PWA shell behavior and torrent range streaming,
+- one active torrent session with metadata/file browsing, peer/progress/download/upload statistics, WebRTC no-peer guidance, and explicit Stop/cleanup,
+- lazy loading of the WebTorrent browser runtime so normal LiveTV startup does not load the large P2P client chunk,
+- torrent media selection streamed through the existing UnifiedPlayer using same-origin `/webtorrent/<info-hash>/<file-path>` transport URLs,
+- stable torrent History/Favorites/Playlist identity based on canonical magnet URI + torrent file path rather than the temporary stream URL,
+- torrent History/Playlist replay routed back through the Torrent workspace so the swarm/file session is rebuilt before UnifiedPlayer playback.
 
-Torrent streaming, XMLTV guide rendering, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
+XMLTV guide rendering, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
 
 Current workspace boundaries:
 
@@ -168,6 +175,69 @@ Choosing **Oynat** on an IPTV channel sends the channel into the existing Unifie
 
 If `livetv-iptv` cannot be opened, the saved IPTV library is disabled but manual direct-media playback remains available.
 
+## Browser WebTorrent streaming
+
+P5 turns `/torrent` into a functional Browser WebTorrent workspace. It accepts:
+
+- a magnet URI containing a BitTorrent info hash,
+- a local `.torrent` metadata file up to **5 MiB**,
+- an HTTP(S) URL whose path points to a `.torrent` file.
+
+The torrent runtime is loaded only after the user starts a torrent operation. LiveTV uses WebTorrent's browser distribution and does not add a Node polyfill stack to the normal web application bundle.
+
+### WebRTC peer boundary
+
+Browser WebTorrent communicates through WebRTC. Ordinary BitTorrent peers that expose only TCP/uTP/UDP transports may therefore be invisible to the browser. A torrent works best when the swarm contains WebRTC-capable peers and/or browser-accessible web seeds. LiveTV does **not** hide this limitation behind a server torrent engine, `webtorrent-hybrid`, TCP/UDP bridge, or generic backend proxy.
+
+While a torrent is active, normal peer-to-peer protocol behavior may upload pieces to other compatible peers. P5 exposes upload statistics and states this behavior in the Torrent workspace. It does not provide a permanent seeding mode, torrent creation, download/archive UI, recording, or transcoding.
+
+### WebTorrent bridge inside the root PWA worker
+
+LiveTV keeps one root PWA registration at `/sw.js`. P5 still serves the official worker bundled with the installed `webtorrent` package at:
+
+```text
+/webtorrent/sw.js
+```
+
+but does **not** register it as a second scoped worker. Instead root `/sw.js` loads that official bridge with `importScripts('/webtorrent/sw.js')`. WebTorrent then uses the existing root registration with scope:
+
+```text
+/
+```
+
+This is required because a Service Worker controls client pages by registration scope; a second worker scoped only to `/webtorrent/` cannot intercept media requests initiated by LiveTV's `/torrent` page. With the root registration as WebTorrent's BrowserServer controller, selected files are exposed under same-origin paths shaped like:
+
+```text
+/webtorrent/<info-hash>/<file-path>
+```
+
+The root LiveTV cache listener explicitly bypasses `/webtorrent/*`, while the imported official WebTorrent fetch listener handles those requests and their Range responses. Torrent stream URLs are never added to the PWA shell cache.
+
+### Single-session cleanup
+
+LiveTV keeps at most one active torrent session. Opening another source first removes the previous torrent. Torrent adds use deselected files and `destroyStoreOnDestroy`; explicit Stop/cleanup requests store destruction as well. LiveTV does not intentionally retain a permanent torrent archive after Stop, although browser storage erasure is best-effort rather than a cryptographic wipe guarantee.
+
+### File selection and UnifiedPlayer
+
+After metadata arrives, the Torrent workspace lists all files. Browser media candidates such as MP4/WebM/MKV video or MP3/M4A/FLAC audio expose an **Oynat** action; unsupported files remain visible but disabled because container/codec support ultimately depends on the browser.
+
+Selecting a media file does not create another player. TorrentController obtains the WebTorrent `streamURL`, converts it to an absolute same-origin URL, and sends it to the existing UnifiedPlayer as direct video or direct audio. Plyr and the existing player lifecycle remain the only media playback surface.
+
+### History, Favorites, and Playlist replay
+
+The temporary `/webtorrent/...` URL is not persisted as personal-library identity. Instead P3 stores a torrent source using:
+
+- canonical magnet URI,
+- torrent info hash,
+- selected file path,
+- selected file media type.
+
+History/Favorites/Playlist identity is derived from `infoHash + filePath`. Replaying a saved torrent source navigates back to `/torrent`, rebuilds the WebTorrent session from the magnet, waits for metadata, selects the saved file path, and only then hands the new stream URL back to UnifiedPlayer. The generic PlayerController still rejects magnet URIs directly and tells the user to open them through the Torrent workspace.
+
+### Dependency audit note
+
+WebTorrent `3.0.21` is MIT licensed and passes the repository's direct dependency license policy. The current npm dependency graph reports the known high-severity `GHSA-2p57-rm9w-gvfp` advisory through `webtorrent → torrent-discovery → bittorrent-tracker → ip`. npm does not currently offer a viable modern in-range fix and suggests a breaking downgrade to a very old WebTorrent release. LiveTV does not apply `npm audit fix --force`; P5 keeps WebTorrent browser-only and does not introduce a server-side arbitrary-URL/SSRF proxy surface. This transitive advisory remains a tracked dependency caveat rather than being hidden by a breaking downgrade.
+
 ## PWA behavior
 
 The normal PWA development entry point is `http://localhost:8080`. Localhost is treated as a secure context by modern browsers, so the service worker can register during local development.
@@ -176,6 +246,7 @@ The PWA boundary is deliberately strict:
 
 - `manifest.webmanifest` declares standalone display mode and the application icons.
 - `sw.js` caches the application shell and safe same-origin static assets only.
+- `sw.js` imports the official WebTorrent stream bridge but its own cache handler still bypasses `/webtorrent/*` media requests.
 - `/api/*`, `/media/*`, video destinations, and audio destinations are never intercepted for offline caching.
 - Torrent, YouTube, HLS, and other media payloads are not converted into an offline media library.
 - Browsers that expose `beforeinstallprompt` get the LiveTV install action; other browsers keep their native installation flow.
@@ -228,6 +299,6 @@ The software license for LiveTV has **not yet been selected**. This repository b
 
 ## Roadmap boundary
 
-P4 does not implement torrent streaming, XMLTV download/guide rendering, downloads or recording, torrent archival behavior, seeding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not provide a generic CORS-bypass URL proxy and does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
+P5 does not implement server-side/hybrid torrent fallback, normal TCP/UDP peer bridging, permanent torrent downloads/archive, torrent creation, explicit seeding management, XMLTV download/guide rendering, recording, transcoding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not provide a generic CORS-bypass URL proxy and does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
 
 The guest library is deliberately repository-backed so a later authenticated synchronization phase can consume the same application-level records without making the player depend on raw IndexedDB structure.

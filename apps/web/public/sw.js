@@ -1,3 +1,5 @@
+self.importScripts('/webtorrent/sw.js')
+
 const SHELL_CACHE = 'livetv-shell-v1'
 const APP_SHELL = [
   '/',

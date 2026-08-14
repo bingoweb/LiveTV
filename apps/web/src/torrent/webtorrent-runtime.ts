@@ -1,7 +1,4 @@
-import {
-  WEBTORRENT_WORKER_SCOPE,
-  WEBTORRENT_WORKER_URL,
-} from '../../vite.webtorrent-worker'
+import { PWA_WORKER_SCOPE, PWA_WORKER_URL } from './webtorrent-worker-config'
 
 export type TorrentRuntimeFile = {
   name: string
@@ -134,8 +131,8 @@ export async function createBrowserWebTorrentRuntime(
     throw new Error('Bu tarayıcı Browser WebTorrent için WebRTC desteklemiyor.')
   }
 
-  const registration = await serviceWorkers.register(WEBTORRENT_WORKER_URL, {
-    scope: WEBTORRENT_WORKER_SCOPE,
+  const registration = await serviceWorkers.register(PWA_WORKER_URL, {
+    scope: PWA_WORKER_SCOPE,
   })
   await waitForActivatedRegistration(registration)
 

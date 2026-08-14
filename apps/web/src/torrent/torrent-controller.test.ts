@@ -118,7 +118,7 @@ describe('TorrentController', () => {
       'Movie/Sintel.mp4',
       1_000,
       'video/mp4',
-      '/webtorrent/webtorrent/hash/Movie/Sintel.mp4',
+      '/webtorrent/hash/Movie/Sintel.mp4',
     )
     runtime.nextTorrent.files = [
       movie,
@@ -199,13 +199,13 @@ describe('TorrentController', () => {
       'Movie/Sintel.mp4',
       1_000,
       'video/mp4',
-      '/webtorrent/webtorrent/hash/Movie/Sintel.mp4',
+      '/webtorrent/hash/Movie/Sintel.mp4',
     )
     const audio = new FakeFile(
       'Audio/theme.mp3',
       200,
       'audio/mpeg',
-      '/webtorrent/webtorrent/hash/Audio/theme.mp3',
+      '/webtorrent/hash/Audio/theme.mp3',
     )
     runtime.nextTorrent.files = [movie, audio]
     const controller = new TorrentController({

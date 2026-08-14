@@ -61,6 +61,8 @@ describe('LibrarySourceActionsView', () => {
     expect(markup).toContain('Listeye ekle')
     expect(markup).toContain('Yeni playlist')
     expect(markup).toContain('Oluştur ve ekle')
+    expect(markup).toContain('name="library-source-playlist"')
+    expect(markup).toContain('name="library-source-new-playlist"')
   })
 
   it('shows favorite removal and disables persistence when unavailable', () => {

@@ -4,8 +4,13 @@ import { dirname, join } from 'node:path'
 
 import type { Plugin } from 'vite'
 
-export const WEBTORRENT_WORKER_URL = '/webtorrent/sw.js'
-export const WEBTORRENT_WORKER_SCOPE = '/webtorrent/'
+import {
+  PWA_WORKER_SCOPE,
+  PWA_WORKER_URL,
+  WEBTORRENT_BRIDGE_URL,
+} from './src/torrent/webtorrent-worker-config.js'
+
+export { PWA_WORKER_SCOPE, PWA_WORKER_URL, WEBTORRENT_BRIDGE_URL }
 
 const require = createRequire(import.meta.url)
 
@@ -22,7 +27,7 @@ export function webTorrentWorkerPlugin(): Plugin {
   return {
     name: 'livetv-webtorrent-worker',
     configureServer(server) {
-      server.middlewares.use(WEBTORRENT_WORKER_URL, (_request, response) => {
+      server.middlewares.use(WEBTORRENT_BRIDGE_URL, (_request, response) => {
         response.statusCode = 200
         response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
         response.setHeader('Cache-Control', 'no-cache')
@@ -32,7 +37,7 @@ export function webTorrentWorkerPlugin(): Plugin {
     generateBundle() {
       this.emitFile({
         type: 'asset',
-        fileName: WEBTORRENT_WORKER_URL.slice(1),
+        fileName: WEBTORRENT_BRIDGE_URL.slice(1),
         source: readWebTorrentWorkerSource(),
       })
     },

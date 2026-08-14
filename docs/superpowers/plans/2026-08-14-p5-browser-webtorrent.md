@@ -4,7 +4,7 @@
 
 **Goal:** Add single-session browser WebTorrent streaming for magnet/local `.torrent`/HTTP(S) torrent inputs, file selection, status/cleanup, and stable P3 History/Favorites/Playlist replay while keeping the existing UnifiedPlayer as the only media playback surface.
 
-**Architecture:** WebTorrent is lazy-loaded behind a dedicated controller. Its official service worker is served at `/webtorrent/sw.js` and registered only for `/webtorrent/`, leaving LiveTV's root PWA worker untouched. TorrentController resolves the swarm/file and hands the selected file's same-origin stream URL to the existing UnifiedPlayer; P3 persistence stores canonical magnet URI + file path instead of temporary stream URLs.
+**Architecture:** WebTorrent is lazy-loaded behind a dedicated controller. Its official worker bridge is served at `/webtorrent/sw.js` from the installed package and imported by LiveTV's existing root `/sw.js`; WebTorrent uses that single root registration because Service Worker scope controls client pages, not request URL ownership. TorrentController resolves the swarm/file and hands the selected file's same-origin `/webtorrent/<info-hash>/<file-path>` URL to the existing UnifiedPlayer; P3 persistence stores canonical magnet URI + file path instead of temporary stream URLs.
 
 **Tech Stack:** React 19, TypeScript 6, Vite 8, native Service Worker/WebRTC APIs, WebTorrent `^3.0.11`, existing Plyr/direct-media adapter, existing IndexedDB P3 library, Vitest.
 
@@ -14,7 +14,7 @@
 - At most one active torrent session.
 - Magnet, HTTP(S) `.torrent` URL, and local `.torrent` file are supported; local metadata max is 5 MiB.
 - Use the official worker from the installed `webtorrent` package, not a CDN or silently stale copied vendor file.
-- Root `/sw.js` stays responsible for PWA shell/static caching; WebTorrent worker scope is `/webtorrent/` only.
+- Root `/sw.js` stays the single PWA registration, imports the official WebTorrent bridge, and keeps its own shell-cache handler out of `/webtorrent/` stream requests.
 - Torrent chunks are session-oriented; use `destroyStoreOnDestroy: true` and explicit `destroyStore: true` cleanup where supported.
 - Do not expose torrent download/save, torrent creation, permanent archive, explicit seeding mode, recording, transcoding, DRM/geo bypass, auth, or cloud sync.
 - P2 direct/HLS/YouTube, P3 History/Favorites/Playlists, and P4 IPTV behavior must remain regression-clean.
@@ -23,7 +23,7 @@
 
 ---
 
-### Task 1: Add WebTorrent dependency and dedicated worker build plumbing
+### Task 1: Add WebTorrent dependency and official worker-bridge build plumbing
 
 **Files:**
 
@@ -37,8 +37,9 @@
 **Interfaces:**
 
 ```ts
-export const WEBTORRENT_WORKER_URL = '/webtorrent/sw.js'
-export const WEBTORRENT_WORKER_SCOPE = '/webtorrent/'
+export const WEBTORRENT_BRIDGE_URL = '/webtorrent/sw.js'
+export const PWA_WORKER_URL = '/sw.js'
+export const PWA_WORKER_SCOPE = '/'
 
 export function resolveWebTorrentWorkerPath(): string
 export function readWebTorrentWorkerSource(): string
@@ -50,7 +51,7 @@ export function webTorrentWorkerPlugin(): Plugin
 - [x] **Step 3: Write RED tests** for `resolveWebTorrentWorkerPath()` and `readWebTorrentWorkerSource()` proving the resolved source exists, is non-empty JavaScript, and contains WebTorrent worker behavior. Extend the PWA regression test to assert root `sw.js` still excludes video/audio/API/media traffic and does not cache `/webtorrent/` streams.
 - [x] **Step 4: Run** `npx vitest run apps/web/src/torrent/webtorrent-worker.test.ts tests/pwa-assets.test.ts`; confirm RED because worker plumbing does not exist.
 - [x] **Step 5: Implement `vite.webtorrent-worker.ts`** using Node filesystem/path APIs. Resolve the installed `webtorrent` package root from its runtime entry, read `dist/sw.min.js`, serve that source at `/webtorrent/sw.js` in Vite dev middleware, and emit `webtorrent/sw.js` during production build. Set JavaScript content type and `Cache-Control: no-cache` for dev worker responses.
-- [x] **Step 6: Register `webTorrentWorkerPlugin()` in `vite.config.ts`** after React plugin. Do not change root PWA worker registration or scope. `tsconfig.node.json` enables TypeScript-extension imports only for the no-emit Vite config graph so Vite's native config-loader compatibility warning is avoided.
+- [x] **Step 6: Register `webTorrentWorkerPlugin()` in `vite.config.ts`** after React plugin. Root PWA registration/scope remains `/sw.js` + `/`; final browser acceptance later established that root `sw.js` must import the emitted official bridge rather than creating a second registration. `tsconfig.node.json` enables TypeScript-extension imports only for the no-emit Vite config graph so Vite's native config-loader compatibility warning is avoided.
 - [x] **Step 7: Run focused tests, `npm run build -w @livetv/web`, and verify `apps/web/dist/webtorrent/sw.js` exists and is non-empty. Run `npm run licenses:check`; confirm WebTorrent is accepted under MIT. Evidence: 5/5 focused tests pass; production emits a 1.29 kB `dist/webtorrent/sw.js`; WebTorrent `3.0.21 — MIT`; license policy passes 20 direct dependencies. `npm audit` reports the known `webtorrent → torrent-discovery → bittorrent-tracker → ip` high-severity advisory chain with no viable modern fix (npm suggests a breaking downgrade to WebTorrent 0.7.3); P5 remains browser-only and adds no server-side arbitrary URL proxy/SSRF surface. This caveat will be carried into final documentation.
 - [x] **Step 8: Commit** with `feat: add WebTorrent worker runtime plumbing`.
 
@@ -206,12 +207,12 @@ export type TorrentPlaybackDescriptor = {
 ```
 
 - [x] **Step 1: Write browser-runtime RED tests** with injected `navigator`/dynamic-import seams. Prove unsupported service-worker/WebRTC states fail locally, worker registration uses `/webtorrent/sw.js` + `/webtorrent/`, registration activation waits on the returned registration (not root `navigator.serviceWorker.ready`), client-level error listener is installed, and `createServer({ controller: registration })` is called once.
-- [x] **Step 2: Implement `createBrowserWebTorrentRuntime()`**. Dynamically import WebTorrent only during initialization; use the package's browser-ready `dist/webtorrent.min.js` so broad Node polyfills are unnecessary. Wrap callback cleanup into `TorrentRuntime.remove()` with `destroyStore: true`; create torrents with `deselect: true` + `destroyStoreOnDestroy: true`. Installed WebTorrent source confirms that worker scope `/webtorrent/` yields stream URLs under `/webtorrent/webtorrent/...`.
+- [x] **Step 2: Implement `createBrowserWebTorrentRuntime()`**. Dynamically import WebTorrent only during initialization; use the package's browser-ready `dist/webtorrent.min.js` so broad Node polyfills are unnecessary. Wrap callback cleanup into `TorrentRuntime.remove()` with `destroyStore: true`; create torrents with `deselect: true` + `destroyStoreOnDestroy: true`. Final browser acceptance corrected the initial narrow-worker assumption: runtime now registers/reuses root `/sw.js` at `/`, whose imported official bridge yields `/webtorrent/<info-hash>/<file-path>` stream URLs.
 - [x] **Step 3: Write TorrentController RED tests** with a fake `TorrentRuntime`. Cover initialize, magnet input, local file bytes, metadata-ready files, `noPeers` advisory state, fatal torrent error isolation, one-active-torrent replacement cleanup, stats refresh, preferred replay file, select file deselect/select behavior, direct-video/audio playback descriptor, stop/destroy cleanup, and best-effort `beforeunload` cleanup.
 - [x] **Step 4: Run focused tests** and confirm RED where controller functionality is absent.
 - [x] **Step 5: Implement TorrentController** with snapshot/subscription API, one active torrent, event listener registration/removal, 1-second stats timer, 5 MiB file guard, and best-effort beforeunload cleanup hook through an injectable environment seam.
 - [x] **Step 6: Ensure `selectFile()` builds `TorrentLibrarySource` from runtime `infoHash + magnetURI + file.path` and returns WebTorrent `streamURL`; unsupported files reject without mutating active selection.
-- [x] **Step 7: Run runtime/controller tests and web typecheck**; confirm PASS without network access. Evidence: 15/15 runtime/controller tests pass and web typecheck exits 0. Focused web build also passes with the dedicated worker emitted; WebTorrent runtime remains tree-shaken until Task 4 consumes the controller.
+- [x] **Step 7: Run runtime/controller tests and web typecheck**; confirm PASS without network access. Evidence: 15/15 runtime/controller tests pass and web typecheck exits 0. Focused web build passes with the official bridge emitted separately; WebTorrent runtime remains dynamically split until the torrent feature is used.
 - [x] **Step 8: Commit** with `feat: add Browser WebTorrent session controller`.
 
 ---
@@ -247,15 +248,15 @@ onPlayDescriptor(descriptor: TorrentPlaybackDescriptor): void
 replayRequest?: { id: number; magnetUri: string; filePath: string } | null
 ```
 
-- [ ] **Step 1: Write context RED tests** proving provider initializes lazily, controller failure becomes torrent-only error/capability state, and SSR children still render before browser runtime initialization.
-- [ ] **Step 2: Write `TorrentWorkspaceView` RED tests** for idle controls, mandatory WebRTC/P2P/upload disclosure, initializing/metadata/no-peers/error states, stats labels, file rows, unsupported disabled Play, supported Play, and Stop action.
-- [ ] **Step 3: Add App route RED test** proving `/torrent` renders functional torrent workspace instead of the old "Arayüz hazır / Yakında" placeholder while the right-side UnifiedPlayer remains present.
-- [ ] **Step 4: Implement `TorrentProvider`** around one controller and wrap App alongside existing Library/IPTV providers. Initialization may be triggered on first torrent operation instead of application startup so WebTorrent stays lazy.
-- [ ] **Step 5: Implement TorrentWorkspace** text source form, local `.torrent` picker, session status/stats, file list, playback selection, Stop/cleanup, and replay-request consumption once per request ID.
-- [ ] **Step 6: Route `/torrent` to TorrentWorkspace** and keep all P2P capability limitations explicit in user copy.
-- [ ] **Step 7: Add existing-design CSS only**; no responsive redesign. Keep long paths/hash/stat rows overflow-safe and touch controls accessible.
-- [ ] **Step 8: Run context/workspace/App/responsive tests and web typecheck**; confirm PASS.
-- [ ] **Step 9: Commit** with `feat: add functional WebTorrent workspace`.
+- [x] **Step 1: Write context RED tests** proving provider remains runtime-lazy, torrent unsupported/error snapshots stay isolated to the torrent feature, and SSR children still render before browser runtime initialization.
+- [x] **Step 2: Write `TorrentWorkspaceView` RED tests** for idle controls, mandatory WebRTC/P2P/upload disclosure, initializing/metadata/no-peers/error states, stats labels, file rows, unsupported disabled Play, supported Play, and Stop action.
+- [x] **Step 3: Add App route RED test** proving `/torrent` renders functional torrent workspace instead of the old "Arayüz hazır / Yakında" placeholder while the right-side UnifiedPlayer remains present.
+- [x] **Step 4: Implement `TorrentProvider`** around one controller and wrap App alongside existing Library/IPTV providers. Browser WebTorrent initialization remains deferred until the first torrent operation, so normal LiveTV startup does not load the P2P runtime.
+- [x] **Step 5: Implement TorrentWorkspace** text source form, local `.torrent` picker, session status/stats, file list, playback selection callback, and Stop/cleanup. Stable replay-request consumption is intentionally completed in Task 5 together with App/P3 replay coordination so there is only one replay pathway.
+- [x] **Step 6: Route `/torrent` to TorrentWorkspace** and keep WebRTC-only peer compatibility, active P2P upload behavior, and no-permanent-archive behavior explicit in user copy.
+- [x] **Step 7: Add existing-design CSS only**; no responsive redesign. Long paths/hash/stat rows are overflow-safe and controls retain existing touch/focus patterns.
+- [x] **Step 8: Run context/workspace/App/responsive tests and web typecheck**; confirm PASS. Evidence: 11/11 focused provider/workspace/App/responsive tests pass and web typecheck exits 0. Production build emits WebTorrent as a separate dynamic `webtorrent.min` chunk plus the official bridge asset, while the initial app chunk remains separate.
+- [x] **Step 9: Commit** with `feat: add functional WebTorrent workspace`. The intermediate commit was intentionally skipped because live acceptance exposed provider-lifetime, App handoff, and Service Worker architecture bugs; the corrected workspace is folded into the verified `chore: complete P5 Browser WebTorrent milestone` commit instead of preserving a known-broken intermediate state.
 
 ---
 
@@ -296,13 +297,13 @@ export type TorrentReplayRequest = {
 }
 ```
 
-- [ ] **Step 1: Write PlayerOpenRequest RED tests** proving torrent playback descriptor creates direct-video/audio request with `/webtorrent/...` stream URL but carries the stable torrent `librarySourceOverride`; normal P3/P4 requests remain unchanged.
-- [ ] **Step 2: Update UnifiedPlayer** so real `playing`, favorite, and playlist actions prefer `librarySourceOverride` when supplied. Clear override on manual/direct source loads and normal requests. The actual player source remains the temporary same-origin direct stream.
-- [ ] **Step 3: Write App replay RED tests/helper tests** proving normal History entries still create direct PlayerOpenRequests while `kind: 'torrent'` creates `TorrentReplayRequest`, navigates to `/torrent`, and never attempts to load the magnet in PlayerController.
-- [ ] **Step 4: Implement torrent replay coordination**: History/Playlist/Favorite `onPlaySource` branches torrent sources to TorrentWorkspace; when that workspace returns a playback descriptor it creates the normal player request and UnifiedPlayer loads it.
-- [ ] **Step 5: Update player-core magnet error** from future-P5 wording to current routing instruction. Keep magnet rejected by generic classification; dedicated Torrent workspace remains responsible for metadata/file selection.
-- [ ] **Step 6: Run player-core, player-request, App, P3 repository/history/favorite/playlist, TorrentWorkspace, and web typecheck tests**; confirm PASS.
-- [ ] **Step 7: Commit** with `feat: integrate torrent playback with LiveTV library`.
+- [x] **Step 1: Write PlayerOpenRequest RED tests** proving torrent playback descriptor creates direct-video/audio request with `/webtorrent/...` stream URL but carries the stable torrent `librarySourceOverride`; normal P3/P4 requests remain unchanged. The common request also converts WebTorrent's path-only `file.streamURL` to an absolute same-origin HTTP URL before generic source classification.
+- [x] **Step 2: Update UnifiedPlayer** so real `playing`, favorite, and playlist actions prefer `librarySourceOverride` when supplied. Clear override on manual/direct source loads and normal requests. The actual player source remains the temporary same-origin direct stream. A pure `resolvePlayerLibrarySource()` test proves the stable torrent override wins over the transient WebTorrent URL.
+- [x] **Step 3: Write App replay RED tests/helper tests** proving normal History entries still create direct PlayerOpenRequests while `kind: 'torrent'` creates `TorrentReplayRequest`, routes through `/torrent`, and never attempts to load the magnet in PlayerController. `replayTorrentSource()` is deterministically tested to reopen the canonical magnet, wait for metadata, select the saved file path, and reject when that file no longer exists.
+- [x] **Step 4: Implement torrent replay coordination**: History/Playlist/Favorite `onPlaySource` branches torrent sources to TorrentWorkspace; TorrentProvider exposes the tested replay helper; when TorrentWorkspace returns a playback descriptor it creates the normal player request and UnifiedPlayer loads it with the stable P3 override.
+- [x] **Step 5: Update player-core magnet error** from future-P5 wording to current routing instruction. The error code is now `TORRENT_WORKSPACE_REQUIRED` and the message is `Magnet bağlantısını Torrent panelinden aç.`; generic classification still rejects magnet input.
+- [x] **Step 6: Run player-core, player-request, replay, UnifiedPlayer library-source, App, P3 repository/history/favorite/playlist, TorrentWorkspace, worker, and web/core typecheck tests plus a production web build**; confirm PASS. Evidence: focused tests/typechecks/build exit 0 and the browser-safe worker constants were split out of the Node-only Vite plugin before runtime integration.
+- [x] **Step 7: Commit** with `feat: integrate torrent playback with LiveTV library`. As with Task 4, the separate intermediate commit was skipped after live acceptance found integration defects; the corrected wiring is included in the verified P5 milestone commit.
 
 ---
 
@@ -317,28 +318,28 @@ export type TorrentReplayRequest = {
 - Modify: `apps/web/src/components/SettingsShell.tsx`
 - Modify: this plan for evidence/checkmarks.
 
-- [ ] **Step 1: Update current milestone copy** to `P5` / `Browser WebTorrent` without rewriting historical P2/P3/P4 architecture references.
-- [ ] **Step 2: Update README** with browser/WebRTC-only peer limitation, magnet/file/HTTP(S) torrent input, dedicated `/webtorrent/` worker, single-session cleanup, P2P upload disclosure, no server fallback/archive, media-file selection, same UnifiedPlayer handoff, and stable P3 replay identity.
-- [ ] **Step 3: Run full local gate:** `npm run verify`, `git diff --check`, `docker compose config`, plus production-build assertion that `apps/web/dist/webtorrent/sw.js` exists. Existing non-fatal large-chunk warnings may remain but WebTorrent must be split from initial app startup.
-- [ ] **Step 4: Docker rebuild/health regression:** preserve YouTube key without printing, rebuild web/api/media-worker/caddy, verify root/API/media health and Halk TV Data API resolution.
-- [ ] **Step 5: Browser service-worker acceptance:** in a fresh isolated Chrome context, verify both root LiveTV PWA registration and dedicated `/webtorrent/` registration coexist with correct scopes; verify ordinary app routes remain controlled by root worker and `/webtorrent/...` requests can use the narrow worker.
-- [ ] **Step 6: Live WebTorrent acceptance:** use the WebTorrent project's documented Creative Commons Sintel magnet when public swarm/web seed availability permits. Verify metadata/file list, select an MP4 candidate, same UnifiedPlayer receives `/webtorrent/...` URL, and playback reaches ready/playing. Record peer/web-seed external limitations if unavailable; deterministic tests remain mandatory regardless.
-- [ ] **Step 7: P3 browser integration:** while/after torrent playback, verify History/Favorite/custom Playlist stores `kind: torrent` stable magnet + file path identity, replay routes through `/torrent`, and Stop clears the active torrent session/store best-effort. Verify YouTube/IPTV routes and clean application console afterward.
-- [ ] **Step 8: Mark evidence and commit** with `chore: complete P5 Browser WebTorrent milestone`.
+- [x] **Step 1: Update current milestone copy** to `P5` / `Browser WebTorrent` without rewriting historical P2/P3/P4 architecture references.
+- [x] **Step 2: Update README** with browser/WebRTC-only peer limitation, magnet/file/HTTP(S) torrent input, root-worker WebTorrent bridge, single-session cleanup, P2P upload disclosure, no server fallback/archive, media-file selection, same UnifiedPlayer handoff, stable P3 replay identity, and the tracked transitive audit caveat.
+- [x] **Step 3: Run full local gate:** `npm run verify`, `git diff --check`, `docker compose config`, plus production-build assertion that `apps/web/dist/webtorrent/sw.js` exists. Evidence after all browser-discovered fixes: 41 test files / 164 tests pass; format, ESLint, all workspace typechecks/builds, 20 direct-dependency license checks, `git diff --check`, Compose config, and non-empty worker asset all pass. WebTorrent remains a separate dynamic chunk. The existing non-fatal HLS chunk-size warning remains.
+- [x] **Step 4: Docker rebuild/health regression:** YouTube key was preserved without printing; web/api/media-worker/caddy rebuilt healthy; root/API/media endpoints passed and Halk TV resolved through official Data API.
+- [x] **Step 5: Browser service-worker acceptance:** fresh isolated Chrome acceptance disproved the original two-worker design. Final architecture has exactly one activated root `/sw.js` registration; it imports `/webtorrent/sw.js`, and a Range-backed torrent stream at `/webtorrent/<info-hash>/<file-path>` reaches the controlled `/torrent` page without falling through to `index.html`.
+- [x] **Step 6: Live WebTorrent acceptance:** official Sintel sample resolved metadata with WebRTC peers, exposed 11 files, selected `Sintel/Sintel.mp4`, sent the same-origin `/webtorrent/<hash>/Sintel/Sintel.mp4` URL to UnifiedPlayer, produced `readyState=4` / duration `888.064`, and reached real `Oynatılıyor` with advancing currentTime and no media error.
+- [x] **Step 7: P3 browser integration:** after real playback, History showed `TORRENT · Sintel.mp4`, Favorite persisted, custom playlist `P5 Torrent Kabul` contained one `Sintel.mp4` item, History replay rebuilt the torrent route/session and returned to real playing, and Stop cleared torrent session counters/files to idle. Halk TV remained CANLI, ANKA ÇEVRİMDIŞI, IPTV empty-state route worked, and a separate torrent-free browser context finished with no console error/warn/issue.
+- [x] **Step 8: Mark evidence and commit** with `chore: complete P5 Browser WebTorrent milestone`.
 - [ ] **Step 9: Post-commit `npm test`, secret scan, worktree-clean proof**, then record evidence in a small docs commit.
 - [ ] **Step 10: Push detached HEAD as `feat/p5-browser-webtorrent`, open PR to `main`, wait for `verify` + `dependency-review`, fix actionable failures, merge when green, fast-forward normal main while preserving ignored `.env`, close integration checkbox with final docs commit, push, run full `npm run verify` on final pushed main, and confirm final main push CI succeeds.
 
 ## Exit Criteria
 
-- [ ] Magnet, local `.torrent`, and HTTP(S) torrent inputs enter Browser WebTorrent without backend proxying.
-- [ ] Official WebTorrent worker is served at `/webtorrent/sw.js` under `/webtorrent/` scope while root PWA worker remains intact.
-- [ ] Browser WebRTC/service-worker unsupported cases fail only the torrent feature.
-- [ ] Torrent metadata, browser-playable file candidates, peer/progress/speed status, no-peers warnings, and Stop controls work.
-- [ ] Selected torrent media streams through existing UnifiedPlayer using `/webtorrent/...` URL.
-- [ ] Only one active torrent exists; opening another/Stop destroys previous store best-effort.
-- [ ] UI discloses WebRTC-only peer compatibility and active P2P upload behavior.
-- [ ] Torrent History/Favorites/Playlists persist stable magnet + file path identity and replay through TorrentWorkspace.
-- [ ] Generic PlayerController never tries to classify magnet as direct media.
-- [ ] No server torrent fallback, permanent archive/download UI, torrent creation, recording, or transcoding is added.
-- [ ] P2/P3/P4 regressions remain clean.
+- [x] Magnet, local `.torrent`, and HTTP(S) torrent inputs enter Browser WebTorrent without backend proxying.
+- [x] Official WebTorrent worker bridge is served at `/webtorrent/sw.js`, imported by the single root `/sw.js` registration, while LiveTV shell caching bypasses `/webtorrent/` streams.
+- [x] Browser WebRTC/service-worker unsupported cases fail only the torrent feature.
+- [x] Torrent metadata, browser-playable file candidates, peer/progress/speed status, no-peers warnings, and Stop controls work.
+- [x] Selected torrent media streams through existing UnifiedPlayer using `/webtorrent/...` URL.
+- [x] Only one active torrent exists; opening another/Stop destroys previous store best-effort.
+- [x] UI discloses WebRTC-only peer compatibility and active P2P upload behavior.
+- [x] Torrent History/Favorites/Playlists persist stable magnet + file path identity and replay through TorrentWorkspace.
+- [x] Generic PlayerController never tries to classify magnet as direct media.
+- [x] No server torrent fallback, permanent archive/download UI, torrent creation, recording, or transcoding is added.
+- [x] P2/P3/P4 regressions remain clean.
 - [ ] Full verification, Docker/service-worker/browser acceptance, GitHub CI, merge, and final-main verification pass.
