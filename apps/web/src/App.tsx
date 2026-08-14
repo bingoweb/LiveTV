@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation'
 import { RouteContent } from './components/RouteContent'
 import { SettingsShell } from './components/SettingsShell'
 import { UnifiedPlayer } from './components/UnifiedPlayer'
+import { GuideProvider } from './guide/guide-context'
 import { IptvProvider } from './iptv/iptv-context'
 import type { IptvChannel } from './iptv/iptv-repository'
 import { LibraryProvider } from './library/library-context'
@@ -104,61 +105,63 @@ export function App({ initialPath }: AppProps) {
   return (
     <LibraryProvider>
       <IptvProvider>
-        <TorrentProvider>
-          <div className="app-shell">
-            <a className="skip-link" href="#main-content">
-              İçeriğe geç
-            </a>
+        <GuideProvider>
+          <TorrentProvider>
+            <div className="app-shell">
+              <a className="skip-link" href="#main-content">
+                İçeriğe geç
+              </a>
 
-            <Navigation activeRoute={route} onNavigate={navigate} />
+              <Navigation activeRoute={route} onNavigate={navigate} />
 
-            <div className="app-main-column">
-              <header className="topbar">
-                <div className="topbar-copy">
-                  <span className="eyebrow">LiveTV</span>
-                  <h1>{route.label}</h1>
-                  <p>{route.description}</p>
-                </div>
+              <div className="app-main-column">
+                <header className="topbar">
+                  <div className="topbar-copy">
+                    <span className="eyebrow">LiveTV</span>
+                    <h1>{route.label}</h1>
+                    <p>{route.description}</p>
+                  </div>
 
-                <div className="topbar-status" aria-label="Sistem durumu">
-                  <span className="status-dot" aria-hidden="true" />
-                  <span>Hazır</span>
-                </div>
-              </header>
+                  <div className="topbar-status" aria-label="Sistem durumu">
+                    <span className="status-dot" aria-hidden="true" />
+                    <span>Hazır</span>
+                  </div>
+                </header>
 
-              <main id="main-content" className="workspace" tabIndex={-1}>
-                <section
-                  className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
-                  aria-label={`${route.label} çalışma alanı`}
-                >
-                  {route.id === 'settings' ? (
-                    <SettingsShell />
-                  ) : (
-                    <>
-                      <div className="context-column">
-                        <RouteContent
-                          route={route}
-                          onNavigate={navigate}
-                          onPlaySource={playLibrarySource}
-                          onPlayIptvChannel={playIptvChannel}
-                          onPlayTorrentDescriptor={playTorrentDescriptor}
-                          torrentReplayRequest={torrentReplayRequest}
-                        />
-                      </div>
+                <main id="main-content" className="workspace" tabIndex={-1}>
+                  <section
+                    className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
+                    aria-label={`${route.label} çalışma alanı`}
+                  >
+                    {route.id === 'settings' ? (
+                      <SettingsShell />
+                    ) : (
+                      <>
+                        <div className="context-column">
+                          <RouteContent
+                            route={route}
+                            onNavigate={navigate}
+                            onPlaySource={playLibrarySource}
+                            onPlayIptvChannel={playIptvChannel}
+                            onPlayTorrentDescriptor={playTorrentDescriptor}
+                            torrentReplayRequest={torrentReplayRequest}
+                          />
+                        </div>
 
-                      <div className="player-column">
-                        <UnifiedPlayer
-                          route={route}
-                          openRequest={playerOpenRequest}
-                        />
-                      </div>
-                    </>
-                  )}
-                </section>
-              </main>
+                        <div className="player-column">
+                          <UnifiedPlayer
+                            route={route}
+                            openRequest={playerOpenRequest}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </section>
+                </main>
+              </div>
             </div>
-          </div>
-        </TorrentProvider>
+          </TorrentProvider>
+        </GuideProvider>
       </IptvProvider>
     </LibraryProvider>
   )
