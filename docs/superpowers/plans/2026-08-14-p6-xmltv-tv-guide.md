@@ -531,9 +531,9 @@ type GuideWorkspaceProps = {
 
 - [x] **Step 8: Regression acceptance.** A separate clean Chrome context navigated History → Playlists → IPTV → Torrent → YouTube → Guide. YouTube showed Halk TV live and ANKA offline; P3/P4/P5 route shells remained functional. Preserved console inspection after the route sequence reported zero `error`, zero `warn`, and zero `issue` messages. A second isolated context proved the no-cache Guide fetch failure now renders a visible alert after `c0cb2e9`.
 
-- [ ] **Step 9: Record evidence and commit** with `chore: complete P6 XMLTV guide milestone`.
+- [x] **Step 9: Record evidence and commit** with `chore: complete P6 XMLTV guide milestone`. Evidence: `e3660e7` records the full local/Docker/browser acceptance results and marks the functional exit criteria complete before integration.
 
-- [ ] **Step 10: Post-commit verification.** Run `npm test`, tracked commit secret scan, `.env` ignored/untracked proof, and clean-worktree proof. Record evidence in a small docs commit.
+- [x] **Step 10: Post-commit verification.** Fresh verification after `e3660e7` passes 53 Vitest files / 233 tests. Tracked `AIza…` scan is clean, `.env` is ignored/untracked, and `git status --porcelain` is empty. This docs update records that evidence before the PR integration step.
 
 - [ ] **Step 11: Integration.** Push detached HEAD as `feat/p6-xmltv-tv-guide`, open PR to `main`, wait for `verify` and `dependency-review`, fix actionable failures without globally weakening policy, merge when green, delete feature branch, fast-forward normal main while preserving ignored `.env`, close integration evidence in this plan, push final docs commit, run `npm ci` if the main checkout dependency tree is stale, then run full `npm run verify` on the final pushed main and confirm its GitHub push CI succeeds.
 
