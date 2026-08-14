@@ -195,9 +195,9 @@ Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPl
 
 - [x] **Step 6: Clean console acceptance.** Separate isolated context reports zero `error`, zero `warn`, and zero `issue` console messages.
 
-- [ ] **Step 7: Record evidence and commit** with `chore: complete simple watch UI milestone`.
+- [x] **Step 7: Record evidence and commit** with `chore: complete simple watch UI milestone` (`ce6d9b0`).
 
-- [ ] **Step 8: Push as `feat/simple-watch-ui`, open PR to `main`, wait for `verify` and `dependency-review`, merge when green, delete the feature branch, fast-forward local main while preserving ignored `.env`, and run final `npm ci` + full `npm run verify` + GitHub push-CI on the final pushed main SHA.
+- [ ] **Step 8: Integration and final-main verification.** `feat/simple-watch-ui` was pushed and PR #10 opened. `dependency-review` passed in 8 seconds and `verify` passed in 42 seconds. PR #10 merged cleanly as `3a86d8417c46c40ac722080b171fbc08ab5ad3f8`; local `main` fast-forwarded to `origin/main`, the feature branch was requested for deletion, and ignored `.env` still contains the configured YouTube key. Final `npm ci` + full `npm run verify` + push-CI on the final documentation SHA remain before closure.
 
 ## Exit Criteria
 
