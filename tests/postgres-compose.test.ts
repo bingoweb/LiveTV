@@ -21,4 +21,19 @@ describe('PostgreSQL 18 Compose storage', () => {
     )
     expect(webSection).not.toContain('YOUTUBE_DATA_API_KEY')
   })
+
+  it('passes the optional EPG private-host allowlist only to the API service', () => {
+    const compose = readFileSync('compose.yaml', 'utf8')
+    const envExample = readFileSync('.env.example', 'utf8')
+    const webSection = compose.split('\n  web:')[1]?.split('\n  api:')[0] ?? ''
+    const apiSection =
+      compose.split('\n  api:')[1]?.split('\n  media-worker:')[0] ?? ''
+
+    expect(envExample).toContain('EPG_FETCH_ALLOWED_PRIVATE_HOSTS=')
+    expect(apiSection).toContain(
+      'EPG_FETCH_ALLOWED_PRIVATE_HOSTS: ${EPG_FETCH_ALLOWED_PRIVATE_HOSTS:-}',
+    )
+    expect(webSection).not.toContain('EPG_FETCH_ALLOWED_PRIVATE_HOSTS')
+    expect(compose).not.toContain('VITE_EPG_FETCH_ALLOWED_PRIVATE_HOSTS')
+  })
 })

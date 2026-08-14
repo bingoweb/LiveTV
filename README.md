@@ -4,14 +4,14 @@ LiveTV is a browser-first media player project designed as a single interface fo
 
 ## Current status
 
-The repository is in **P5 — Browser WebTorrent Streaming**. The responsive PWA shell, P2 unified playback engine, P3 guest library, and P4 IPTV/M3U library are now connected to a browser-native WebTorrent workspace that still uses the same UnifiedPlayer for media playback.
+The repository is in **P6 — XMLTV TV Guide**. The responsive PWA shell, P2 unified playback engine, P3 guest library, P4 IPTV/M3U library, and P5 Browser WebTorrent workspace are now joined by a persistent XMLTV guide that still sends live channel playback through the same UnifiedPlayer.
 
 The current implementation includes:
 
 - desktop sidebar navigation and large player workspace,
 - tablet split layout with a compact navigation rail,
 - phone-first player layout with bottom navigation and a secondary bottom sheet,
-- route shells for Home, Live TV, YouTube, Torrent, TV Guide, and Settings plus functional IPTV, Playlists, and History workspaces,
+- route shells for Home, Live TV, YouTube, Torrent, and Settings plus functional IPTV, TV Guide, Playlists, and History workspaces,
 - one unified playback surface for direct HTTP(S) media, HLS, and YouTube,
 - Plyr controls with fullscreen and PiP where the browser/provider exposes them,
 - HLS.js playback with native-HLS fallback and manual quality choices when multiple levels are available,
@@ -50,9 +50,14 @@ The current implementation includes:
 - lazy loading of the WebTorrent browser runtime so normal LiveTV startup does not load the large P2P client chunk,
 - torrent media selection streamed through the existing UnifiedPlayer using same-origin `/webtorrent/<info-hash>/<file-path>` transport URLs,
 - stable torrent History/Favorites/Playlist identity based on canonical magnet URI + torrent file path rather than the temporary stream URL,
-- torrent History/Playlist replay routed back through the Torrent workspace so the swarm/file session is rebuilt before UnifiedPlayer playback.
+- torrent History/Playlist replay routed back through the Torrent workspace so the swarm/file session is rebuilt before UnifiedPlayer playback,
+- shared XMLTV parsing for channels, programme metadata, XMLTV timestamps, stop-time inference, and non-fatal malformed-row warnings,
+- a dedicated `livetv-epg` IndexedDB cache with transactional replacement, 6-hour freshness, 12-hour past retention, and 8-day future retention,
+- direct-first XMLTV fetch with local `.xml`/`.xmltv`/gzip import and a verified URL-backed API fallback when browser CORS blocks the feed,
+- conservative IPTV-to-XMLTV channel matching using exact `tvg-id`, unique folded id, and ambiguity-safe display-name fallback,
+- a functional `/guide` workspace with now/next status, today plus six following days, programme details, unmatched `EPG yok` channels, and existing-player channel actions.
 
-XMLTV guide rendering, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
+Authentication, watch-progress resume, recording/catch-up, reminders, and cross-device sync remain later roadmap phases.
 
 Current workspace boundaries:
 
@@ -120,6 +125,14 @@ YOUTUBE_DATA_API_KEY=your-youtube-data-api-key
 
 The key is passed only to the Fastify API service; it is not a Vite/client variable and must not be added as `VITE_*`. If the key is absent, LiveTV remains functional and uses the channel `/live` resolver instead.
 
+P6 XMLTV fallback rejects private/non-public network targets by default. An administrator who intentionally runs an IPTV/EPG provider on a LAN can opt in exact hosts through the server-only setting:
+
+```text
+EPG_FETCH_ALLOWED_PRIVATE_HOSTS=iptv.home.arpa,192.168.1.50
+```
+
+The value is passed only to the Fastify API service. It is an exact-host allowlist, not a CIDR or wildcard switch: redirects are independently revalidated, and playlist-declaration verification, protocol restrictions, timeouts, and body-size limits still apply.
+
 ## Unified player
 
 Open any route that exposes the player and enter a source URL. The automatic classifier recognizes YouTube video URLs, `.m3u8` HLS manifests, common audio extensions, and direct web media. Extensionless or signed CDN URLs remain usable as direct video by default; the `Motor` selector can explicitly force HLS, YouTube, Video, or Audio when automatic detection is not enough.
@@ -163,7 +176,7 @@ The `/iptv` workspace accepts playlists in three ways:
 - a local `.m3u` or `.m3u8` file,
 - pasted M3U text.
 
-Each import is limited to **10 MiB**. The parser understands common extended-M3U metadata including `tvg-id`, `tvg-name`, `tvg-logo`, `group-title`, and `#EXTGRP`. Playlist header EPG references from `url-tvg`, `x-tvg-url`, and `tvg-url` are preserved for the later TV Guide phase, but P4 does not download or render XMLTV data.
+Each import is limited to **10 MiB**. The parser understands common extended-M3U metadata including `tvg-id`, `tvg-name`, `tvg-logo`, `group-title`, and `#EXTGRP`. Playlist header EPG references from `url-tvg`, `x-tvg-url`, and `tvg-url` are preserved for P6 TV Guide matching and refresh.
 
 Only HTTP(S) channel URLs are stored. Query strings and URL fragments are preserved because signed IPTV stream URLs may depend on them. Relative stream URLs can be resolved when the playlist itself was imported from a URL; file and paste imports reject relative stream URLs because they do not have a trustworthy base address. Malformed entries are skipped as non-fatal warnings when the same playlist still contains valid channels.
 
@@ -174,6 +187,36 @@ Multiple IPTV lists can be stored independently. The active list can be searched
 Choosing **Oynat** on an IPTV channel sends the channel into the existing UnifiedPlayer. `.m3u8` paths explicitly select the HLS engine; other HTTP(S) channel URLs use normal automatic source classification. Once that source reaches real `playing`, the existing P3 library integration can record it in History and preserve its IPTV display name/logo for Favorites and user playlists.
 
 If `livetv-iptv` cannot be opened, the saved IPTV library is disabled but manual direct-media playback remains available.
+
+## XMLTV TV Guide
+
+P6 turns `/guide` into a functional, cache-first XMLTV programme guide. P4 remains the source of truth for IPTV lists and channels; P6 consumes the active list's preserved EPG URLs and `tvg-id` metadata without copying the IPTV library into a server account.
+
+Guide data is normalized into a separate browser IndexedDB database named `livetv-epg`. The cache is disposable and rebuildable: a successful refresh replaces one list's EPG rows transactionally, while a fetch, parse, or write failure leaves the previous valid schedule intact. Programmes older than **12 hours** or more than **8 days** ahead are discarded during replacement. Cached URL-backed EPG is considered fresh for **6 hours**.
+
+### Direct-first XMLTV loading
+
+For every EPG URL declared by the selected IPTV list, LiveTV first tries a normal browser fetch. If that succeeds, XMLTV is parsed locally and no API fallback is used. Plain XML and gzip-compressed XMLTV are supported up to **50 MiB decompressed**.
+
+If direct fetch fails because of CORS/network restrictions and the IPTV list itself came from an HTTP(S) M3U URL, the web app may call:
+
+```text
+POST /api/epg/fetch
+```
+
+The endpoint is intentionally **not** a generic URL proxy. Before it fetches the XMLTV URL, the API independently fetches the supplied playlist URL, extracts only `url-tvg`, `x-tvg-url`, and `tvg-url` from the M3U header, resolves relative declarations, and requires the requested EPG address to be one of those declared values. The playlist verification body is capped at **10 MiB / 12 seconds**; XMLTV is capped at **50 MiB decompressed / 20 seconds**.
+
+Outbound API fetches permit only HTTP(S), validate DNS answers and every redirect target, reject private/loopback/link-local/non-public addresses by default, pin the actual socket to the already-validated DNS result, limit redirects, and do not forward browser cookies or arbitrary client headers. `EPG_FETCH_ALLOWED_PRIVATE_HOSTS` can opt in exact administrator-controlled LAN hosts without disabling the remaining checks.
+
+File- or paste-imported IPTV lists never gain this server fallback because the API cannot independently prove where their EPG URL came from. They may still use a direct CORS-capable XMLTV URL, or the user can import a local `.xml`, `.xmltv`, `.xml.gz`, `.xmltv.gz`, or `.gz` file. Local-file mode remains local until the user explicitly chooses **URL’lerden yenile**; a background freshness check does not silently replace it.
+
+### Channel matching and guide rows
+
+P6 prefers correctness over aggressive fuzzy matching. An exact IPTV `tvg-id` match wins. A case-folded id is accepted only when unambiguous, followed by a conservative unique `tvg-name` / channel-name match against XMLTV `display-name`. Normalization preserves meaningful tokens such as `HD`, `4K`, numbers, and regional words. If a mapping is ambiguous, the channel stays visible as **EPG yok** rather than receiving a plausible-but-wrong schedule.
+
+The Guide workspace shows **Şimdi**, **Sıradaki**, current-programme progress, today plus the next six calendar days, and expandable programme title/subtitle/description/category details. Selecting **Kanalı oynat** sends the original P4 `IptvChannel` through the existing `playerRequestForIptvChannel()` path; XMLTV programme selection does not imply catch-up playback or create another player.
+
+When several EPG URLs are declared, source order is persisted and earlier sources win duplicate schedules. If only some sources fail, successful sources remain usable with a warning. If every refresh path fails, LiveTV keeps rendering the last valid cache and marks it stale rather than erasing the guide.
 
 ## Browser WebTorrent streaming
 
@@ -236,7 +279,7 @@ History/Favorites/Playlist identity is derived from `infoHash + filePath`. Repla
 
 ### Dependency audit note
 
-WebTorrent `3.0.21` is MIT licensed and passes the repository's direct dependency license policy. The current npm dependency graph reports the known high-severity `GHSA-2p57-rm9w-gvfp` advisory through `webtorrent → torrent-discovery → bittorrent-tracker → ip`. npm does not currently offer a viable modern in-range fix and suggests a breaking downgrade to a very old WebTorrent release. LiveTV does not apply `npm audit fix --force`; P5 keeps WebTorrent browser-only and does not introduce a server-side arbitrary-URL/SSRF proxy surface. GitHub Dependency Review therefore allowlists **only this advisory ID** while retaining its normal blocking policy for every other new vulnerability; the exception should be removed as soon as upstream WebTorrent resolves the dependency. This transitive advisory remains a tracked dependency caveat rather than being hidden by a breaking downgrade.
+WebTorrent `3.0.21` is MIT licensed and passes the repository's direct dependency license policy. The current npm dependency graph reports the known high-severity `GHSA-2p57-rm9w-gvfp` advisory through `webtorrent → torrent-discovery → bittorrent-tracker → ip`. npm does not currently offer a viable modern in-range fix and suggests a breaking downgrade to a very old WebTorrent release. LiveTV does not apply `npm audit fix --force`; WebTorrent itself remains browser-only. P6's separate EPG endpoint is not an arbitrary proxy and applies playlist-declaration verification plus explicit outbound-network controls. GitHub Dependency Review therefore allowlists **only this advisory ID** while retaining its normal blocking policy for every other new vulnerability; the exception should be removed as soon as upstream WebTorrent resolves the dependency. This transitive advisory remains a tracked dependency caveat rather than being hidden by a breaking downgrade.
 
 ## PWA behavior
 
@@ -299,6 +342,6 @@ The software license for LiveTV has **not yet been selected**. This repository b
 
 ## Roadmap boundary
 
-P5 does not implement server-side/hybrid torrent fallback, normal TCP/UDP peer bridging, permanent torrent downloads/archive, torrent creation, explicit seeding management, XMLTV download/guide rendering, recording, transcoding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not provide a generic CORS-bypass URL proxy and does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
+P6 does not implement server-side/hybrid torrent fallback, normal TCP/UDP peer bridging, permanent torrent downloads/archive, torrent creation, explicit seeding management, recording/DVR, catch-up playback, programme reminders, transcoding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. The EPG fallback is deliberately narrower than a general CORS-bypass URL proxy, and LiveTV does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
 
 The guest library is deliberately repository-backed so a later authenticated synchronization phase can consume the same application-level records without making the player depend on raw IndexedDB structure.

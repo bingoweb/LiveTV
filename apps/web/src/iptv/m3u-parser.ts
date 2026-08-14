@@ -1,3 +1,5 @@
+import { extractM3uEpgUrls } from '@livetv/shared'
+
 import type {
   M3uParseWarning,
   ParsedIptvChannel,
@@ -70,31 +72,6 @@ function parseExtInf(line: string, lineNumber: number): PendingChannel {
     logoUrl: compact(attributes.get('tvg-logo')),
     groupTitle: compact(attributes.get('group-title')),
   }
-}
-
-function parseEpgUrls(line: string) {
-  const attributes = parseAttributes(line)
-  const values = [
-    attributes.get('url-tvg'),
-    attributes.get('x-tvg-url'),
-    attributes.get('tvg-url'),
-  ]
-  const urls: string[] = []
-  for (const value of values) {
-    if (!value) continue
-    for (const candidate of value.split(',').map((item) => item.trim())) {
-      if (!candidate) continue
-      try {
-        const url = new URL(candidate)
-        if (url.protocol === 'http:' || url.protocol === 'https:') {
-          urls.push(url.toString())
-        }
-      } catch {
-        // EPG metadata is optional and never makes channel import fail.
-      }
-    }
-  }
-  return urls
 }
 
 function resolveStreamUrl(
@@ -177,7 +154,9 @@ export function parseM3u(
     if (!line) continue
 
     if (line.toUpperCase().startsWith('#EXTM3U')) {
-      for (const epgUrl of parseEpgUrls(line)) epgUrls.add(epgUrl)
+      for (const epgUrl of extractM3uEpgUrls(line, options.baseUrl)) {
+        epgUrls.add(epgUrl)
+      }
       continue
     }
 
