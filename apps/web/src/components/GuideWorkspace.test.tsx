@@ -200,4 +200,21 @@ describe('GuideWorkspaceView', () => {
     expect(markup).toContain('URL’lerden yenile')
     expect(markup).toContain('eski rehber gösteriliyor')
   })
+
+  it('shows a foreground guide-load error when no cache could be loaded', () => {
+    const markup = renderToStaticMarkup(
+      <GuideWorkspaceView
+        guide={guide({
+          channels: [],
+          fetchedAt: undefined,
+          errorMessage: 'XMLTV kaynaklarının hiçbiri alınamadı.',
+        })}
+        iptv={iptv()}
+        now={NOW}
+        {...actions}
+      />,
+    )
+
+    expect(markup).toContain('XMLTV kaynaklarının hiçbiri alınamadı.')
+  })
 })

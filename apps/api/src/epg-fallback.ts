@@ -2,7 +2,6 @@ import { extractM3uEpgUrls } from '@livetv/shared'
 
 import {
   fetchPublicHttpText,
-  PublicHttpTextError,
   type PublicHttpTextOptions,
 } from './public-http-text.js'
 

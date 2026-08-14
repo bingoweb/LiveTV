@@ -230,9 +230,9 @@ export function GuideWorkspaceView({
             Rehber yenileniyor… mevcut programlar ekranda kalır.
           </p>
         ) : null}
-        {guide.warningMessage || actionError ? (
+        {guide.warningMessage || guide.errorMessage || actionError ? (
           <p className="guide-notice is-warning" role="alert">
-            {actionError ?? guide.warningMessage}
+            {actionError ?? guide.warningMessage ?? guide.errorMessage}
           </p>
         ) : null}
       </section>
