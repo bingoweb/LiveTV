@@ -535,7 +535,7 @@ type GuideWorkspaceProps = {
 
 - [x] **Step 10: Post-commit verification.** Fresh verification after `e3660e7` passes 53 Vitest files / 233 tests. Tracked `AIza…` scan is clean, `.env` is ignored/untracked, and `git status --porcelain` is empty. This docs update records that evidence before the PR integration step.
 
-- [ ] **Step 11: Integration.** Detached HEAD was pushed as `feat/p6-xmltv-tv-guide` and PR #9 (`feat: add XMLTV TV guide`) targeted `main`. `dependency-review` passed in 8s and `verify` passed in 35s; PR state was CLEAN/MERGEABLE before merge. PR #9 merged as `7a932e324788c5b83b4b1c6e789eeb7a7d97aecc`, the remote feature branch was deleted, and the normal `/Users/bingoweb/Projeler/LiveTV` checkout fast-forwarded to the same `origin/main` SHA while the ignored `.env` retained the configured YouTube API key. Remaining proof for this step is the final docs push followed by dependency sync if needed, full verification on that pushed `main`, and its GitHub push-CI result.
+- [x] **Step 11: Integration.** Detached HEAD was pushed as `feat/p6-xmltv-tv-guide` and PR #9 (`feat: add XMLTV TV guide`) targeted `main`. `dependency-review` passed in 8s and `verify` passed in 35s; PR state was CLEAN/MERGEABLE before merge. PR #9 merged as `7a932e324788c5b83b4b1c6e789eeb7a7d97aecc`, the remote feature branch was deleted, and the normal `/Users/bingoweb/Projeler/LiveTV` checkout fast-forwarded to the same `origin/main` SHA while the ignored `.env` retained the configured YouTube API key. After dependency sync with `npm ci`, full verification on pushed `main` commit `995b5b01861d9f024ca5c8435a49236d986ecda8` passed 53 Vitest files / 233 tests plus format, lint, all workspace typechecks/builds, 21-dependency license policy, `git diff --check`, and Compose config. GitHub push-CI run `31810766993` completed successfully for that SHA.
 
 ## Exit Criteria
 
@@ -554,4 +554,4 @@ type GuideWorkspaceProps = {
 - [x] Unmatched channels remain visible and playable.
 - [x] Guide channel playback reuses the existing P4/UnifiedPlayer request path.
 - [x] P2/P3/P4/P5 regressions remain clean.
-- [ ] Full local verification, Docker/API/browser acceptance, GitHub CI, merge, and final-main verification pass.
+- [x] Full local verification, Docker/API/browser acceptance, GitHub CI, merge, and final-main verification pass.
