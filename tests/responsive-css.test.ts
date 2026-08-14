@@ -2,33 +2,23 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-describe('LiveTV responsive CSS regressions', () => {
-  it('gives short landscape phone screens a single full-width player column', () => {
+describe('LiveTV simple watch responsive CSS regressions', () => {
+  it('keeps the main watch surface centered and the viewport cinematic', () => {
     const css = readFileSync('apps/web/src/styles.css', 'utf8')
-    const marker =
-      '@media (max-height: 500px) and (max-width: 900px) and (orientation: landscape) {'
-    const start = css.indexOf(marker)
-    const nextMedia =
-      start === -1 ? -1 : css.indexOf('@media', start + marker.length)
-    const landscapePhoneRule =
-      start === -1
-        ? ''
-        : css.slice(start, nextMedia === -1 ? undefined : nextMedia)
 
-    expect(start).toBeGreaterThanOrEqual(0)
-    expect(landscapePhoneRule).toContain('.desktop-sidebar')
-    expect(landscapePhoneRule).toContain(
-      'grid-template-columns: minmax(0, 1fr)',
+    expect(css).toMatch(
+      /\.simple-watch-main\s*\{[^}]*max-width:\s*1280px;[^}]*margin:\s*0 auto;/s,
+    )
+    expect(css).toMatch(
+      /\.unified-player-viewport\s*\{[^}]*aspect-ratio:\s*16\s*\/\s*9;/s,
     )
   })
 
-  it('keeps the seven-day guide strip horizontally scrollable and guide rows shrink-safe', () => {
+  it('stacks the URL and action controls on narrow screens', () => {
     const css = readFileSync('apps/web/src/styles.css', 'utf8')
 
-    expect(css).toMatch(/\.guide-date-strip\s*\{[^}]*overflow-x:\s*auto;/s)
-    expect(css).toMatch(/\.guide-channel-row\s*\{[^}]*min-width:\s*0;/s)
     expect(css).toMatch(
-      /@media \(max-width: 768px\)[\s\S]*?\.guide-now-next\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s,
+      /@media \(max-width: 768px\)[\s\S]*?\.player-source-input-row\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s,
     )
   })
 })
