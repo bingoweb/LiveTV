@@ -197,7 +197,7 @@ Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPl
 
 - [x] **Step 7: Record evidence and commit** with `chore: complete simple watch UI milestone` (`ce6d9b0`).
 
-- [ ] **Step 8: Integration and final-main verification.** `feat/simple-watch-ui` was pushed and PR #10 opened. `dependency-review` passed in 8 seconds and `verify` passed in 42 seconds. PR #10 merged cleanly as `3a86d8417c46c40ac722080b171fbc08ab5ad3f8`; local `main` fast-forwarded to `origin/main`, the feature branch was requested for deletion, and ignored `.env` still contains the configured YouTube key. Final `npm ci` + full `npm run verify` + push-CI on the final documentation SHA remain before closure.
+- [x] **Step 8: Integration and final-main verification.** `feat/simple-watch-ui` was pushed and PR #10 opened. `dependency-review` passed in 8 seconds and `verify` passed in 42 seconds. PR #10 merged cleanly as `3a86d8417c46c40ac722080b171fbc08ab5ad3f8`; the remote feature branch is deleted. Local `main` fast-forwarded to `origin/main` while ignored `.env` retained the configured YouTube key. After `npm ci`, full `npm run verify` passes on pushed main `420b61445349e31587057d25f0c92d4e923f7705` with 54 Vitest files / 229 tests, all format/lint/type/build/license/Compose/secret checks green, and GitHub push CI run `31814494476` completed successfully.
 
 ## Exit Criteria
 
@@ -208,4 +208,4 @@ Run: `npx vitest run apps/web/src/App.test.tsx apps/web/src/components/UnifiedPl
 - [x] Automatic direct/HLS/YouTube source detection still works.
 - [x] YouTube channel/handle live recovery remains functional.
 - [x] Desktop and mobile layouts are clean, centered, and responsive.
-- [ ] Full local verification, Docker/browser acceptance, PR CI, merge, and final-main verification pass.
+- [x] Full local verification, Docker/browser acceptance, PR CI, merge, and final-main verification pass.
