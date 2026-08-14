@@ -165,7 +165,9 @@ export type PublicHttpTextOptions = {
   maxRedirects?: number
   acceptGzip?: boolean
   allowedPrivateHosts?: ReadonlySet<string>
-  lookupImpl?: typeof import('node:dns/promises').lookup
+  lookupImpl?: (hostname: string) => Promise<
+    Array<{ address: string; family: 4 | 6 }>
+  >
 }
 
 export type PublicHttpTextResult = {
@@ -210,17 +212,17 @@ export async function fetchVerifiedEpg(
 ): Promise<{ xml: string; epgUrl: string }>
 ```
 
-- [ ] **Step 1: Write `public-http-text` RED tests** using injectable DNS resolution and a deterministic local HTTP fixture/server seam. Cover invalid protocol, loopback/private IPv4, loopback/ULA/link-local IPv6, DNS answers containing any non-public address, allowed public address, an exact `allowedPrivateHosts` match permitting only that configured host, redirect revalidation including a redirect to a different non-allowlisted private host, redirect limit, timeout, body-size overflow, gzip body normalization, and no arbitrary cookie/header forwarding.
+- [x] **Step 1: Write `public-http-text` RED tests** covering invalid protocol, public/private IPv4/IPv6 classification, private DNS rejection, exact private-host allowlist, redirect revalidation, redirect limit, timeout, response-size overflow, gzip normalization, and no cookie forwarding.
 
-- [ ] **Step 2: Run** `npx vitest run apps/api/test/public-http-text.test.ts`; confirm RED because the module does not exist.
+- [x] **Step 2: Run** the public HTTP test; RED was confirmed because `../src/public-http-text` did not exist.
 
-- [ ] **Step 3: Implement public-address validation** without a broad proxy dependency. Use `node:net` for literal IP detection, explicit IPv4/IPv6 private/reserved range checks, and `dns/promises.lookup(host, { all: true, verbatim: true })`. Reject a hostname if any returned address is non-public.
+- [x] **Step 3: Implement public-address validation** with `node:net`, explicit IPv4/IPv6 blocked ranges, DNS-all-address validation, and exact-host private allowlist semantics.
 
-- [ ] **Step 4: Implement `fetchPublicHttpText()`** with `node:http`/`node:https.request`, a custom validated DNS `lookup` callback so the actual socket uses a validated address, at most three manual redirects, timeout/abort handling, streaming byte limits, and gzip decode through `node:zlib.createGunzip()` when the response body is actually gzip-compressed. Preserve hostname/SNI by requesting the original URL hostname rather than replacing the URL with the resolved IP.
+- [x] **Step 4: Implement `fetchPublicHttpText()`** with validated pinned DNS, manual revalidated redirects, timeout, streaming limits, gzip decode, original hostname/SNI preservation, and constant upstream headers only. Node 24's `lookup(...,{all:true})` callback shape is handled by the pinned lookup seam.
 
-- [ ] **Step 5: Re-run public-http tests** and confirm GREEN before adding the EPG endpoint.
+- [x] **Step 5: Re-run public-http tests**; all 7 behavior tests pass.
 
-- [ ] **Step 6: Write `epg-fallback` RED tests** proving the API independently fetches the playlist URL with 10 MiB / 12 s limits, extracts EPG URLs with shared `extractM3uEpgUrls()`, resolves relative declarations, rejects an undeclared requested EPG URL, and fetches an approved EPG with 50 MiB / 20 s limits.
+- [x] **Step 6: Write `epg-fallback` RED tests** proving playlist-first verification, relative declaration resolution, undeclared URL rejection without a second fetch, stage-specific limits, typed failures, and Fastify route behavior.
 
 ```ts
 await expect(
@@ -234,15 +236,15 @@ await expect(
 ).rejects.toThrow('ilan edilmiyor')
 ```
 
-- [ ] **Step 7: Implement `fetchVerifiedEpg()`** so there is no code path that fetches `epgUrl` before playlist declaration verification succeeds. Translate lower-level URL/network/size failures into typed `EpgFallbackError` values; route code must branch on `error.code`/`statusCode`, never Turkish message substrings.
+- [x] **Step 7: Implement `fetchVerifiedEpg()`** with playlist-first declaration verification and typed `EpgFallbackError` mapping; route handling uses error code/status rather than message matching.
 
-- [ ] **Step 8: Write Fastify route RED tests** for `POST /api/epg/fetch`: missing/invalid body → `400 invalid_epg_request`; unsafe network target → `400 unsafe_epg_url`; playlist fetch error → `502 playlist_fetch_failed`; undeclared URL → `400 epg_not_declared_by_playlist`; XMLTV fetch/size failure → `502` with the appropriate structured code; success → XML text and XML content type.
+- [x] **Step 8: Write Fastify route RED tests** for successful XML response, missing-field rejection, and typed structured fallback errors; lower-level tests cover unsafe/network/size mappings.
 
-- [ ] **Step 9: Add injectable `epgFetcher` to `buildApi()` options** for deterministic route tests and register exactly one POST endpoint. Parse `EPG_FETCH_ALLOWED_PRIVATE_HOSTS` once at API construction into an exact-host set passed to the fetch layer. Do not add wildcard paths, custom target headers, arbitrary methods, or user-provided request bodies forwarded upstream.
+- [x] **Step 9: Add injectable `epgFetcher` to `buildApi()`** and exactly one `POST /api/epg/fetch` endpoint. `EPG_FETCH_ALLOWED_PRIVATE_HOSTS` is parsed once at API construction and passed to the verified fetch layer.
 
-- [ ] **Step 10: Wire server-only environment configuration.** Add blank `EPG_FETCH_ALLOWED_PRIVATE_HOSTS=` to `.env.example`; pass it only to the API service in `compose.yaml`. Add/extend a compose regression test proving the web service does not receive it and that no `VITE_*` EPG private-host variable exists.
+- [x] **Step 10: Wire server-only environment configuration.** `.env.example` and API Compose service carry `EPG_FETCH_ALLOWED_PRIVATE_HOSTS`; regression test proves the web service does not receive it and no `VITE_*` equivalent exists.
 
-- [ ] **Step 11: Run API tests and API typecheck** with `npx vitest run apps/api/test/public-http-text.test.ts apps/api/test/epg-fallback.test.ts apps/api/test/youtube-live.test.ts tests/postgres-compose.test.ts` and `npm run typecheck -w @livetv/api`; confirm YouTube resolver behavior remains green.
+- [x] **Step 11: Run API tests and API typecheck.** Evidence: 28/28 focused tests pass across public HTTP, EPG fallback, YouTube live resolver, and Compose regression; API typecheck exits 0 and `docker compose config` passes.
 
 - [ ] **Step 12: Commit** with `feat: add verified XMLTV fallback endpoint`.
 

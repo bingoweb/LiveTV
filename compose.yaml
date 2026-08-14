@@ -29,6 +29,7 @@ services:
     environment:
       API_PORT: '3001'
       YOUTUBE_DATA_API_KEY: ${YOUTUBE_DATA_API_KEY:-}
+      EPG_FETCH_ALLOWED_PRIVATE_HOSTS: ${EPG_FETCH_ALLOWED_PRIVATE_HOSTS:-}
     healthcheck:
       test:
         [
