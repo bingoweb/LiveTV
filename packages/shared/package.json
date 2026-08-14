@@ -8,5 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run test"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.10.1"
   }
 }

@@ -94,9 +94,9 @@ export function parseXmltv(
 ): ParsedXmltv
 ```
 
-- [ ] **Step 1: Add parser dependency RED/lock intent.** Run `npm install fast-xml-parser@^5.10.1 -w @livetv/shared`. Confirm only `packages/shared/package.json` and the root lockfile gain the direct dependency; do not add another XML library.
+- [x] **Step 1: Add parser dependency RED/lock intent.** `fast-xml-parser@5.10.1` was added only to `@livetv/shared` plus the root lockfile; no second XML library was introduced.
 
-- [ ] **Step 2: Write `m3u-epg.test.ts` RED tests** proving quoted `url-tvg`, `x-tvg-url`, and `tvg-url` attributes are extracted, comma/space-separated URL lists are normalized, duplicates are removed in declaration order, relative EPG URLs resolve against a supplied playlist URL, and malformed/unsupported entries are ignored instead of throwing.
+- [x] **Step 2: Write `m3u-epg.test.ts` RED tests** covering declared EPG attributes, order/deduplication, relative resolution, malformed/unsupported values, and first-header-only behavior.
 
 ```ts
 expect(
@@ -110,13 +110,13 @@ expect(
 ])
 ```
 
-- [ ] **Step 3: Run the shared M3U test** with `npx vitest run packages/shared/test/m3u-epg.test.ts`; confirm RED because `extractM3uEpgUrls()` does not exist.
+- [x] **Step 3: Run the shared M3U test**; RED was confirmed because `../src/m3u-epg` did not exist.
 
-- [ ] **Step 4: Implement `extractM3uEpgUrls()`** as a pure parser that inspects only the first `#EXTM3U` header line, reuses the same quoted-attribute grammar P4 needs, resolves relative URLs only when a base URL exists, accepts HTTP(S) only, and preserves order while deduplicating.
+- [x] **Step 4: Implement `extractM3uEpgUrls()`** as the pure shared header parser with HTTP(S), base-URL resolution, order preservation, and deduplication.
 
-- [ ] **Step 5: Refactor P4 `m3u-parser.ts`** so playlist-level EPG extraction delegates to `extractM3uEpgUrls()` without changing existing channel parsing behavior. Extend the existing P4 parser tests to prove the old outputs remain identical.
+- [x] **Step 5: Refactor P4 `m3u-parser.ts`** so playlist-level EPG extraction delegates to the shared helper; all six existing P4 parser tests remain green.
 
-- [ ] **Step 6: Write XMLTV RED tests** covering channel ids/display names/icons, programme title/subtitle/description/categories, offset timestamps, no-offset timestamps using an injected `localWallClockToEpoch`, identifiers such as `001` remaining strings, invalid rows becoming warnings, missing stop inferred from the next programme on the same channel, and a final missing stop defaulting to 30 minutes.
+- [x] **Step 6: Write XMLTV RED tests** covering channel/programme metadata, offset/local timestamps, string ids, warnings, stop inference/defaulting, and duplicate removal.
 
 ```ts
 const parsed = parseXmltv(xml, {
@@ -131,13 +131,13 @@ expect(parsed.programmes[0]).toMatchObject({
 })
 ```
 
-- [ ] **Step 7: Run XMLTV tests** with `npx vitest run packages/shared/test/xmltv.test.ts`; confirm RED because the parser does not exist.
+- [x] **Step 7: Run XMLTV tests**; RED was confirmed because `../src/xmltv` did not exist.
 
-- [ ] **Step 8: Implement `parseXmltv()`** with `fast-xml-parser` configured to preserve string identifiers/attributes. Normalize singleton/array XML nodes, decode text through the library, parse common XMLTV date forms, sort programmes by `(channelId,startAt)`, infer/default stop times, and dedupe exact `(channelId,startAt,stopAt,title)` programme duplicates.
+- [x] **Step 8: Implement `parseXmltv()`** with string-preserving `fast-xml-parser`, normalized singleton/array nodes, date parsing, stop inference/defaulting, warnings, sort, and exact programme dedupe.
 
-- [ ] **Step 9: Export shared helpers** from `packages/shared/src/index.ts` and run `npm run test -w @livetv/shared`, P4 M3U tests, `npm run typecheck -w @livetv/shared`, and `npm run typecheck -w @livetv/web`; confirm GREEN.
+- [x] **Step 9: Export shared helpers** and verify shared/P4 tests plus shared/web typecheck. Evidence: 14/14 focused tests pass; shared/web typecheck exits 0. `packages/shared` now declares `DOM` in its lib set because the shared URL parser targets both browser and Node runtimes.
 
-- [ ] **Step 10: Run `npm run licenses:check`** and record the resolved `fast-xml-parser` version/license. If Dependency Review or license policy rejects it, stop this task and choose a compatible XML parser before later tasks depend on the API.
+- [x] **Step 10: Run `npm run licenses:check`**. Evidence: `fast-xml-parser@5.10.1 — MIT`; license policy passes 21 direct dependencies and `npm install` reported no current vulnerabilities in the updated graph.
 
 - [ ] **Step 11: Commit** with `feat: add shared XMLTV parsing`.
 
