@@ -76,7 +76,7 @@ export function listIptvGroups(
 ): string[]
 ```
 
-- [ ] **Step 1: Write parser RED tests** covering quoted/unquoted `#EXTINF` attributes, comma-containing display names, `#EXTGRP` fallback, header EPG extraction, signed query/fragment preservation, URL-relative resolution, file/paste-relative rejection, malformed-row warnings, and duplicate elimination.
+- [x] **Step 1: Write parser RED tests** covering quoted/unquoted `#EXTINF` attributes, comma-containing display names, `#EXTGRP` fallback, header EPG extraction, signed query/fragment preservation, URL-relative resolution, file/paste-relative rejection, malformed-row warnings, and duplicate elimination.
 
 Example fixture:
 
@@ -105,12 +105,12 @@ expect(parseM3u(text, { baseUrl: 'https://lists.example/main/list.m3u' }))
   })
 ```
 
-- [ ] **Step 2: Run** `npx vitest run apps/web/src/iptv/m3u-parser.test.ts` and confirm RED because parser modules do not exist.
-- [ ] **Step 3: Implement the minimal parser** with line-oriented state: parse header attributes, hold one pending `#EXTINF` record, allow `#EXTGRP` to fill an absent group, consume the next non-comment line as its URL, emit warnings instead of throwing for malformed entries, normalize/dedupe EPG URLs, and dedupe channels by `${tvgId ?? ''}\u0000${streamUrl}`.
-- [ ] **Step 4: Run parser tests** and confirm PASS.
-- [ ] **Step 5: Write channel-filter RED tests** proving case-insensitive search across name/tvg-name/tvg-id/group/stream host, exact group filtering, `Grupsuz` support via an internal empty-group sentinel, alphabetical group enumeration, and unchanged input order.
-- [ ] **Step 6: Implement `filterIptvChannels()` and `listIptvGroups()`**, run both focused test files and `npm run typecheck -w @livetv/web`, confirm PASS.
-- [ ] **Step 7: Commit** with `feat: add extended M3U parser`.
+- [x] **Step 2: Run** `npx vitest run apps/web/src/iptv/m3u-parser.test.ts` and confirm RED because parser modules do not exist.
+- [x] **Step 3: Implement the minimal parser** with line-oriented state: parse header attributes, hold one pending `#EXTINF` record, allow `#EXTGRP` to fill an absent group, consume the next non-comment line as its URL, emit warnings instead of throwing for malformed entries, normalize/dedupe EPG URLs, and dedupe channels by `${tvgId ?? ''}\u0000${streamUrl}`.
+- [x] **Step 4: Run parser tests** and confirm PASS.
+- [x] **Step 5: Write channel-filter RED tests** proving case-insensitive search across name/tvg-name/tvg-id/group/stream host, exact group filtering, `Grupsuz` support via an internal empty-group sentinel, alphabetical group enumeration, and unchanged input order.
+- [x] **Step 6: Implement `filterIptvChannels()` and `listIptvGroups()`**, run both focused test files and `npm run typecheck -w @livetv/web`, confirm PASS. Evidence: 9/9 focused tests pass; web typecheck exits 0.
+- [x] **Step 7: Commit** with `feat: add extended M3U parser`.
 
 ---
 
