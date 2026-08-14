@@ -21,6 +21,16 @@ function source(index: number): LibrarySource {
   }
 }
 
+const torrentSource: LibrarySource = {
+  sourceKey:
+    'torrent:0123456789abcdef0123456789abcdef01234567:Movie%2FSintel.mp4',
+  url: 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=Sintel',
+  kind: 'torrent',
+  title: 'Sintel.mp4',
+  torrentFilePath: 'Movie/Sintel.mp4',
+  torrentMediaType: 'video',
+}
+
 describe('IndexedDB library repository', () => {
   let repository: LibraryRepository
 
@@ -120,6 +130,44 @@ describe('IndexedDB library repository', () => {
     expect(await repository.listHistory()).toEqual([])
     expect(await repository.listFavorites()).toHaveLength(1)
     expect(await repository.listPlaylists()).toHaveLength(1)
+  })
+
+  it('persists stable torrent sources across history, favorites, and playlists', async () => {
+    await repository.recordPlayback(torrentSource, 100)
+    await repository.addFavorite(torrentSource, 100)
+    const playlist = await repository.createPlaylist('Torrent')
+    await repository.addPlaylistItem(playlist.id, torrentSource)
+
+    expect(await repository.listHistory()).toEqual([
+      { ...torrentSource, lastPlayedAt: 100, playCount: 1 },
+    ])
+    expect(await repository.listFavorites()).toEqual([
+      { ...torrentSource, addedAt: 100 },
+    ])
+    expect(await repository.listPlaylistItems(playlist.id)).toEqual([
+      expect.objectContaining(torrentSource),
+    ])
+  })
+
+  it('skips malformed torrent rows missing stable file metadata', async () => {
+    const database = await openLibraryDatabase({ name: databaseName })
+    const transaction = database.transaction('history', 'readwrite')
+    transaction.objectStore('history').put({
+      sourceKey: 'torrent:broken',
+      url: torrentSource.url,
+      kind: 'torrent',
+      title: 'Broken',
+      lastPlayedAt: 100,
+      playCount: 1,
+    })
+    await new Promise<void>((resolve, reject) => {
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error)
+    })
+    database.close()
+
+    expect(await repository.listHistory()).toEqual([])
   })
 
   it('skips malformed records while preserving valid library data', async () => {

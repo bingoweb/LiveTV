@@ -1,3 +1,5 @@
+self.importScripts('/webtorrent/sw.js')
+
 const SHELL_CACHE = 'livetv-shell-v1'
 const APP_SHELL = [
   '/',
@@ -43,6 +45,7 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/media/') ||
+    url.pathname.startsWith('/webtorrent/') ||
     request.destination === 'video' ||
     request.destination === 'audio'
   ) {

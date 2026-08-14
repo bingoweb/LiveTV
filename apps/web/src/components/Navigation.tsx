@@ -74,9 +74,9 @@ function DesktopNavigation({ activeRoute, onNavigate }: NavigationProps) {
         <div className="phase-card">
           <span className="phase-chip">{appMeta.phase}</span>
           <div>
-            <strong>IPTV & M3U library</strong>
+            <strong>Browser WebTorrent</strong>
             <small>
-              M3U listeleri, kanallar ve kişisel kütüphane cihazda kalıcı.
+              Torrent akışı, IPTV ve kişisel kütüphane tek çalışma alanında.
             </small>
           </div>
         </div>

@@ -31,6 +31,15 @@ const sources: Record<LibrarySource['kind'], LibrarySource> = {
     kind: 'audio',
     title: 'Audio',
   },
+  torrent: {
+    sourceKey:
+      'torrent:0123456789abcdef0123456789abcdef01234567:Movie%2FSintel.mp4',
+    url: 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567',
+    kind: 'torrent',
+    title: 'Sintel.mp4',
+    torrentFilePath: 'Movie/Sintel.mp4',
+    torrentMediaType: 'video',
+  },
 }
 
 describe('library player request', () => {
@@ -39,6 +48,9 @@ describe('library player request', () => {
     expect(playerPreferenceForLibrarySource(sources.hls)).toBe('hls')
     expect(playerPreferenceForLibrarySource(sources.video)).toBe('direct-video')
     expect(playerPreferenceForLibrarySource(sources.audio)).toBe('direct-audio')
+    expect(() => playerPreferenceForLibrarySource(sources.torrent)).toThrow(
+      'Torrent paneli',
+    )
   })
 
   it('creates a fresh request id for repeated play-again actions', () => {

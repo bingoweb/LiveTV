@@ -7,13 +7,17 @@ import { UnifiedPlayer } from './components/UnifiedPlayer'
 import { IptvProvider } from './iptv/iptv-context'
 import type { IptvChannel } from './iptv/iptv-repository'
 import { LibraryProvider } from './library/library-context'
-import {
-  playerRequestForIptvChannel,
-  playerRequestForLibrarySource,
-  type PlayerOpenRequest,
-} from './player/player-open-request'
 import type { LibrarySource } from './library/library-types'
 import { resolveRoute } from './navigation'
+import { TorrentProvider } from './torrent/torrent-context'
+import type { TorrentPlaybackDescriptor } from './torrent/torrent-controller'
+import type { TorrentReplayRequest } from './torrent/torrent-replay'
+import {
+  playbackRequestForLibrarySource,
+  playerRequestForIptvChannel,
+  playerRequestForTorrentPlayback,
+  type PlayerOpenRequest,
+} from './player/player-open-request'
 
 type AppProps = {
   initialPath?: string
@@ -29,7 +33,10 @@ export function App({ initialPath }: AppProps) {
   const [pathname, setPathname] = useState(() => getInitialPath(initialPath))
   const [playerOpenRequest, setPlayerOpenRequest] =
     useState<PlayerOpenRequest | null>(null)
+  const [torrentReplayRequest, setTorrentReplayRequest] =
+    useState<TorrentReplayRequest | null>(null)
   const playerRequestIdRef = useRef(0)
+  const torrentReplayIdRef = useRef(0)
   const route = resolveRoute(pathname)
 
   useEffect(() => {
@@ -58,12 +65,21 @@ export function App({ initialPath }: AppProps) {
   }
 
   const playLibrarySource = (source: LibrarySource) => {
-    const request = playerRequestForLibrarySource(
+    const playback = playbackRequestForLibrarySource(
       playerRequestIdRef.current,
+      torrentReplayIdRef.current,
       source,
     )
-    playerRequestIdRef.current = request.id
-    setPlayerOpenRequest(request)
+
+    if (playback.kind === 'torrent') {
+      torrentReplayIdRef.current = playback.request.id
+      setTorrentReplayRequest(playback.request)
+      navigate('/torrent')
+      return
+    }
+
+    playerRequestIdRef.current = playback.request.id
+    setPlayerOpenRequest(playback.request)
   }
 
   const playIptvChannel = (channel: IptvChannel) => {
@@ -75,60 +91,74 @@ export function App({ initialPath }: AppProps) {
     setPlayerOpenRequest(request)
   }
 
+  const playTorrentDescriptor = (descriptor: TorrentPlaybackDescriptor) => {
+    const request = playerRequestForTorrentPlayback(
+      playerRequestIdRef.current,
+      descriptor,
+    )
+    playerRequestIdRef.current = request.id
+    setPlayerOpenRequest(request)
+    setTorrentReplayRequest(null)
+  }
+
   return (
     <LibraryProvider>
       <IptvProvider>
-        <div className="app-shell">
-          <a className="skip-link" href="#main-content">
-            İçeriğe geç
-          </a>
+        <TorrentProvider>
+          <div className="app-shell">
+            <a className="skip-link" href="#main-content">
+              İçeriğe geç
+            </a>
 
-          <Navigation activeRoute={route} onNavigate={navigate} />
+            <Navigation activeRoute={route} onNavigate={navigate} />
 
-          <div className="app-main-column">
-            <header className="topbar">
-              <div className="topbar-copy">
-                <span className="eyebrow">LiveTV</span>
-                <h1>{route.label}</h1>
-                <p>{route.description}</p>
-              </div>
+            <div className="app-main-column">
+              <header className="topbar">
+                <div className="topbar-copy">
+                  <span className="eyebrow">LiveTV</span>
+                  <h1>{route.label}</h1>
+                  <p>{route.description}</p>
+                </div>
 
-              <div className="topbar-status" aria-label="Sistem durumu">
-                <span className="status-dot" aria-hidden="true" />
-                <span>Hazır</span>
-              </div>
-            </header>
+                <div className="topbar-status" aria-label="Sistem durumu">
+                  <span className="status-dot" aria-hidden="true" />
+                  <span>Hazır</span>
+                </div>
+              </header>
 
-            <main id="main-content" className="workspace" tabIndex={-1}>
-              <section
-                className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
-                aria-label={`${route.label} çalışma alanı`}
-              >
-                {route.id === 'settings' ? (
-                  <SettingsShell />
-                ) : (
-                  <>
-                    <div className="context-column">
-                      <RouteContent
-                        route={route}
-                        onNavigate={navigate}
-                        onPlaySource={playLibrarySource}
-                        onPlayIptvChannel={playIptvChannel}
-                      />
-                    </div>
+              <main id="main-content" className="workspace" tabIndex={-1}>
+                <section
+                  className={`workspace-grid${route.id === 'settings' ? ' settings-layout' : ''}`}
+                  aria-label={`${route.label} çalışma alanı`}
+                >
+                  {route.id === 'settings' ? (
+                    <SettingsShell />
+                  ) : (
+                    <>
+                      <div className="context-column">
+                        <RouteContent
+                          route={route}
+                          onNavigate={navigate}
+                          onPlaySource={playLibrarySource}
+                          onPlayIptvChannel={playIptvChannel}
+                          onPlayTorrentDescriptor={playTorrentDescriptor}
+                          torrentReplayRequest={torrentReplayRequest}
+                        />
+                      </div>
 
-                    <div className="player-column">
-                      <UnifiedPlayer
-                        route={route}
-                        openRequest={playerOpenRequest}
-                      />
-                    </div>
-                  </>
-                )}
-              </section>
-            </main>
+                      <div className="player-column">
+                        <UnifiedPlayer
+                          route={route}
+                          openRequest={playerOpenRequest}
+                        />
+                      </div>
+                    </>
+                  )}
+                </section>
+              </main>
+            </div>
           </div>
-        </div>
+        </TorrentProvider>
       </IptvProvider>
     </LibraryProvider>
   )

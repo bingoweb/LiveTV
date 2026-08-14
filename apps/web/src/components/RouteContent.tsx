@@ -1,16 +1,21 @@
 import type { IptvChannel } from '../iptv/iptv-repository'
 import type { NavigationItem } from '../navigation'
 import type { LibrarySource } from '../library/library-types'
+import type { TorrentPlaybackDescriptor } from '../torrent/torrent-controller'
+import type { TorrentReplayRequest } from '../torrent/torrent-replay'
 import { AppIcon } from './AppIcon'
 import { HistoryLibrary } from './HistoryLibrary'
 import { IptvLibrary } from './IptvLibrary'
 import { PlaylistsLibrary } from './PlaylistsLibrary'
+import { TorrentWorkspace } from './TorrentWorkspace'
 
 type RouteContentProps = {
   route: NavigationItem
   onNavigate: (path: string) => void
   onPlaySource?: (source: LibrarySource) => void
   onPlayIptvChannel?: (channel: IptvChannel) => void
+  onPlayTorrentDescriptor?: (descriptor: TorrentPlaybackDescriptor) => void
+  torrentReplayRequest?: TorrentReplayRequest | null
 }
 
 const sourceHints: Record<
@@ -146,7 +151,7 @@ function SourceContent({ route }: { route: NavigationItem }) {
         </div>
         <div className="source-entry-copy">
           <span className="source-status">
-            {supportsPlayback ? 'P4 oynatma + kütüphane hazır' : 'Arayüz hazır'}
+            {supportsPlayback ? 'P5 oynatma + kütüphane hazır' : 'Arayüz hazır'}
           </span>
           <strong>{content.action}</strong>
           <p>
@@ -190,6 +195,8 @@ export function RouteContent({
   onNavigate,
   onPlaySource = () => {},
   onPlayIptvChannel = () => {},
+  onPlayTorrentDescriptor = () => {},
+  torrentReplayRequest = null,
 }: RouteContentProps) {
   if (route.id === 'history') {
     return <HistoryLibrary onPlaySource={onPlaySource} />
@@ -201,6 +208,15 @@ export function RouteContent({
 
   if (route.id === 'iptv') {
     return <IptvLibrary onPlayChannel={onPlayIptvChannel} />
+  }
+
+  if (route.id === 'torrent') {
+    return (
+      <TorrentWorkspace
+        onPlayDescriptor={onPlayTorrentDescriptor}
+        replayRequest={torrentReplayRequest}
+      />
+    )
   }
 
   return (

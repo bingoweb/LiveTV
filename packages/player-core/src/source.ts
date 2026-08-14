@@ -63,7 +63,7 @@ function normalizeUrl(input: string) {
   if (trimmed.toLowerCase().startsWith('magnet:')) {
     throw new PlayerSourceError(
       'TORRENT_REQUIRES_P5',
-      'Torrent kaynakları Browser WebTorrent fazında etkinleştirilecek.',
+      'Magnet bağlantısını Torrent panelinden aç.',
     )
   }
 

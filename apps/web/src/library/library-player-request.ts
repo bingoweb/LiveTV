@@ -19,6 +19,8 @@ export function playerPreferenceForLibrarySource(
       return 'direct-audio'
     case 'video':
       return 'direct-video'
+    case 'torrent':
+      throw new Error('Torrent kaynaklarını Torrent panelinden aç.')
   }
 }
 

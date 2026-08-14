@@ -9,8 +9,8 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLibrary } from '../library/library-context'
+import { resolvePlayerLibrarySource } from '../library/player-library-source'
 import { shouldRecordPlayback } from '../library/playback-history-session'
-import { toLibrarySource } from '../library/library-types'
 import type { NavigationItem } from '../navigation'
 import {
   createBrowserAdapterFactories,
@@ -40,7 +40,7 @@ type UnifiedPlayerProps = {
 type PlayerUiState = 'idle' | BrowserPlayerState | 'error'
 type OpenRequestMetadata = Pick<
   PlayerOpenRequest,
-  'title' | 'thumbnailUrl' | 'channelUrl'
+  'title' | 'thumbnailUrl' | 'channelUrl' | 'librarySourceOverride'
 >
 
 const sourceKindLabels: Record<PlayerSource['kind'], string> = {
@@ -107,7 +107,9 @@ export function UnifiedPlayer({
         (status): status is Extract<LiveChannelStatus, { status: 'live' }> =>
           status.status === 'live' && status.videoId === source.videoId,
       )
-      return toLibrarySource(source, {
+      return resolvePlayerLibrarySource({
+        source,
+        override: activeMetadata?.librarySourceOverride ?? null,
         title: activeMetadata?.title ?? liveStatus?.title ?? 'YouTube yayını',
         ...((activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl)
           ? {
@@ -123,7 +125,9 @@ export function UnifiedPlayer({
       })
     }
 
-    return toLibrarySource(source, {
+    return resolvePlayerLibrarySource({
+      source,
+      override: activeMetadata?.librarySourceOverride ?? null,
       title:
         activeMetadata?.title ??
         (source.kind === 'hls'
@@ -304,6 +308,9 @@ export function UnifiedPlayer({
         ? { thumbnailUrl: openRequest.thumbnailUrl }
         : {}),
       ...(openRequest.channelUrl ? { channelUrl: openRequest.channelUrl } : {}),
+      ...(openRequest.librarySourceOverride
+        ? { librarySourceOverride: openRequest.librarySourceOverride }
+        : {}),
     })
   }, [openRequest])
 

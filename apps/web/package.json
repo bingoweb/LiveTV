@@ -14,7 +14,8 @@
     "hls.js": "^1.7.0",
     "plyr": "^3.8.4",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "webtorrent": "^3.0.21"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
