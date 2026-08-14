@@ -1,5 +1,7 @@
 import type { PlayerQuality } from '@livetv/player-core'
-import type Plyr from 'plyr'
+
+type PlyrConstructor = typeof import('plyr')
+type PlyrOptions = NonNullable<ConstructorParameters<PlyrConstructor>[1]>
 
 export type HlsLevelLike = {
   height?: number
@@ -20,7 +22,7 @@ const PLAYER_CONTROLS = [
   'fullscreen',
 ] as const
 
-export function buildBasePlyrOptions(): Plyr.Options {
+export function buildBasePlyrOptions(): PlyrOptions {
   return {
     autoplay: false,
     controls: [...PLAYER_CONTROLS],
@@ -36,7 +38,7 @@ export function buildBasePlyrOptions(): Plyr.Options {
 export function buildYouTubePlyrOptions(
   origin: string,
   mode: YouTubeEmbedMode = 'privacy',
-): Plyr.Options {
+): PlyrOptions {
   return {
     ...buildBasePlyrOptions(),
     youtube: {

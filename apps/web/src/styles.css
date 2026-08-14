@@ -3224,3 +3224,240 @@ a:focus-visible,
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Simple watch surface --------------------------------------------------- */
+
+.simple-watch-app {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 50% -18%,
+      rgba(124, 108, 255, 0.2),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 94% 90%,
+      rgba(79, 215, 232, 0.08),
+      transparent 32%
+    );
+}
+
+.simple-watch-header {
+  width: 100%;
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 28px 32px 10px;
+}
+
+.simple-watch-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.simple-watch-brand::before {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7564ff, #4a9eff 58%, #43d8dc);
+  box-shadow: 0 9px 26px rgba(80, 92, 255, 0.26);
+  content: '▶';
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.simple-watch-main {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 30px 32px 56px;
+}
+
+.simple-watch-player.player-card {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 26px;
+  background: rgba(12, 17, 28, 0.88);
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px);
+}
+
+.simple-watch-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 30px 20px;
+}
+
+.simple-watch-intro > div {
+  min-width: 0;
+}
+
+.simple-watch-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent-strong);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.simple-watch-intro h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.simple-watch-intro p {
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.simple-watch-intro .player-ready-chip {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  padding: 8px 11px;
+  font-size: 9px;
+}
+
+.simple-watch-source-form.player-source-form {
+  border: 0;
+  background: transparent;
+  padding: 0 30px 26px;
+}
+
+.simple-watch-url-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.simple-watch-player .player-source-input-row {
+  gap: 10px;
+}
+
+.simple-watch-player .player-source-input-row input {
+  min-height: 54px;
+  border-radius: 14px;
+  background: rgba(5, 8, 14, 0.72);
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.simple-watch-player .player-open-button {
+  min-width: 164px;
+  min-height: 54px;
+  border-radius: 14px;
+  padding-inline: 20px;
+  font-size: 12px;
+  box-shadow: 0 14px 32px rgba(77, 66, 208, 0.24);
+}
+
+.unified-player-viewport {
+  min-height: 0;
+  flex: none;
+  aspect-ratio: 16 / 9;
+}
+
+.simple-watch-player .player-viewport::after {
+  display: none;
+}
+
+.simple-watch-player .unified-player-empty-state {
+  max-width: 520px;
+  gap: 14px;
+}
+
+.simple-watch-player .unified-player-empty-state strong {
+  color: var(--text-secondary);
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: 650;
+}
+
+.simple-watch-player .empty-play-button {
+  width: 74px;
+  height: 74px;
+  margin-bottom: 2px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+@media (max-width: 768px) {
+  .simple-watch-header {
+    padding: calc(18px + env(safe-area-inset-top)) 16px 6px;
+  }
+
+  .simple-watch-main {
+    padding: 18px 14px 30px;
+  }
+
+  .simple-watch-player.player-card {
+    border-radius: 20px;
+  }
+
+  .simple-watch-intro {
+    gap: 14px;
+    padding: 22px 18px 16px;
+  }
+
+  .simple-watch-intro h1 {
+    font-size: clamp(24px, 8vw, 34px);
+  }
+
+  .simple-watch-intro p {
+    font-size: 11px;
+  }
+
+  .simple-watch-intro .player-ready-chip {
+    display: inline-flex;
+  }
+
+  .simple-watch-source-form.player-source-form {
+    padding: 0 18px 20px;
+  }
+
+  .player-source-input-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .simple-watch-player .player-open-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .unified-player-viewport {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 480px) {
+  .simple-watch-intro {
+    flex-direction: column;
+  }
+
+  .simple-watch-intro .player-ready-chip {
+    margin-top: 0;
+  }
+}

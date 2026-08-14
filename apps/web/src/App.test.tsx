@@ -4,77 +4,18 @@ import { describe, expect, it } from 'vitest'
 import { App } from './App'
 
 describe('App', () => {
-  it('renders the responsive LiveTV P1 shell with accessible navigation', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/" />)
+  it('renders one simple watch surface without product navigation', () => {
+    const markup = renderToStaticMarkup(<App />)
 
-    expect(markup).toContain('class="app-shell"')
-    expect(markup).toContain('href="#main-content"')
-    expect(markup).toContain('aria-label="Ana navigasyon"')
-    expect(markup).toContain('class="mobile-bottom-nav"')
-    expect(markup).toContain('Ne izlemek istersin?')
+    expect(markup).toContain('LiveTV')
     expect(markup).toContain('unified-player')
     expect(markup).toContain('Medya URL’si')
-    expect(markup).toContain('Kaynağı aç')
-  })
-
-  it('renders route-specific context without changing the player shell', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/torrent" />)
-
-    expect(markup).toContain('Torrent')
-    expect(markup).toContain('Magnet veya .torrent URL’si')
-    expect(markup).not.toContain('Arayüz hazır')
-    expect(markup).toContain('aria-current="page"')
-    expect(markup).toContain('unified-player')
-  })
-
-  it('renders the functional IPTV library route instead of the old P4 placeholder', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/iptv" />)
-
-    expect(markup).toContain('IPTV kütüphanesi yükleniyor')
-    expect(markup).not.toContain('M3U kanal listeleri P4’te gelecek')
-    expect(markup).toContain('XMLTV TV Guide')
-    expect(markup).toContain('unified-player')
-  })
-
-  it('renders the functional TV guide route instead of the XMLTV placeholder', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/guide" />)
-
-    expect(markup).toContain('TV rehberi yükleniyor')
-    expect(markup).not.toContain(
-      'XMLTV verisi bağlandığında şimdi ve sıradaki programlar burada görünecek.',
-    )
-    expect(markup).toContain('unified-player')
-  })
-
-  it('exposes featured live YouTube channels and Premium session support', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/youtube" />)
-
-    expect(markup).toContain('Halk TV')
-    expect(markup).toContain('@Halktvkanali')
-    expect(markup).toContain('ANKA Haber')
-    expect(markup).toContain('@ankahaberajans')
-    expect(markup).toContain('YouTube Premium oturumunu kullan')
-    expect(markup).toContain('Premium')
-    expect(markup).toContain('P6 oynatma + kütüphane hazır')
-    expect(markup).not.toContain('P5 oynatma + kütüphane hazır')
-    expect(markup).not.toContain('P4 oynatma + kütüphane hazır')
-    expect(markup).not.toContain('P3 oynatma + kütüphane hazır')
-    expect(markup).not.toContain('P2 oynatma hazır')
-  })
-
-  it('renders a dedicated settings shell', () => {
-    const markup = renderToStaticMarkup(<App initialPath="/settings" />)
-
-    expect(markup).toContain('class="settings-shell"')
-    expect(markup).toContain('Görünüm ve tema')
-    expect(markup).toContain('Başlangıç davranışı')
-    expect(markup).toContain('Uygulama ve PWA')
-    expect(markup).toContain('YouTube hesabı ve Premium')
-    expect(markup).toContain('P6’da')
-    expect(markup).not.toContain('P5’te')
-    expect(markup).not.toContain('P4’te')
-    expect(markup).not.toContain('P3’te')
-    expect(markup).not.toContain('P2’de')
-    expect(markup).not.toContain('unified-player')
+    expect(markup).not.toContain('aria-label="Ana navigasyon"')
+    expect(markup).not.toContain('class="mobile-bottom-nav"')
+    expect(markup).not.toContain('Ne izlemek istersin?')
+    expect(markup).not.toContain('IPTV / M3U kütüphanesi')
+    expect(markup).not.toContain('TV rehberi yükleniyor')
+    expect(markup).not.toContain('settings-shell')
+    expect(markup).not.toContain('XMLTV TV Guide')
   })
 })

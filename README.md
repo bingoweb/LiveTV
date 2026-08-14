@@ -1,63 +1,24 @@
 # LiveTV
 
-LiveTV is a browser-first media player project designed as a single interface for live TV, YouTube, IPTV, playlists, guide data, and torrent streaming sources. The application targets desktop, tablet, and phone browsers and keeps heavy media work outside the UI layer.
+LiveTV is a browser-first **load and watch** player. The visible product is intentionally narrow: paste an internet media URL, press **Yükle ve İzle**, and watch it in one large player.
 
 ## Current status
 
-The repository is in **P6 — XMLTV TV Guide**. The responsive PWA shell, P2 unified playback engine, P3 guest library, P4 IPTV/M3U library, and P5 Browser WebTorrent workspace are now joined by a persistent XMLTV guide that still sends live channel playback through the same UnifiedPlayer.
+The current interface is a single-screen watch surface. There is no sidebar, bottom navigation, Settings screen, IPTV/Torrent/Guide workspace, History/Playlist surface, local-file picker, manual engine selector, Premium toggle, or manual quality control in the visible UI.
 
-The current implementation includes:
+The active watch path includes:
 
-- desktop sidebar navigation and large player workspace,
-- tablet split layout with a compact navigation rail,
-- phone-first player layout with bottom navigation and a secondary bottom sheet,
-- route shells for Home, Live TV, YouTube, Torrent, and Settings plus functional IPTV, TV Guide, Playlists, and History workspaces,
-- one unified playback surface for direct HTTP(S) media, HLS, and YouTube,
-- Plyr controls with fullscreen and PiP where the browser/provider exposes them,
-- HLS.js playback with native-HLS fallback and manual quality choices when multiple levels are available,
-- automatic URL classification plus a manual source-engine selector for ambiguous/extensionless URLs,
-- lazy-loaded Plyr and HLS.js chunks so media engines do not inflate the initial application bundle,
-- YouTube video URL parsing and embedded playback with the current LiveTV origin,
-- YouTube channel/@handle live discovery through `/api/youtube/resolve-live`, preferring the official YouTube Data API when `YOUTUBE_DATA_API_KEY` is configured and automatically falling back to the channel `/live` page when the API is unavailable,
-- short live/offline discovery caches with explicit manual-refresh bypass, so changing broadcast IDs are refreshed without repeatedly spending upstream requests,
-- built-in quick actions for `@Halktvkanali` and `@ankahaberajans`, including a clear offline state when a channel has no active live stream,
-- a YouTube Premium session mode that uses the normal `youtube.com` embed so the browser can reuse an existing signed-in YouTube/Premium session when allowed,
-- a privacy-enhanced YouTube mode using `youtube-nocookie.com`, selectable from the player or Settings,
-- a `YouTube’da aç` fallback for cases where the embedded player cannot reuse the signed-in session,
-- a dedicated settings shell with working in-session theme/startup controls and a persistent YouTube embed-mode preference,
-- semantic landmarks, skip navigation, keyboard focus states, reduced-motion support, and touch-friendly controls,
-- an installable Web App Manifest with 192 px and 512 px application icons,
-- a registered service worker with install/update plumbing,
-- application-shell/static-asset caching that explicitly excludes API and media traffic.
-- native IndexedDB persistence for playback history, favorites, and custom playlists,
-- history recording only after a source reaches a real `playing` state,
-- deduplicated history with a 200-entry retention limit,
-- persistent favorites keyed by stable media-source identity,
-- custom playlist create, rename, delete, add/remove, and explicit up/down reorder operations,
-- functional History and Playlists routes that can send saved sources back into the same unified player,
-- graceful library disablement when IndexedDB is unavailable without disabling playback.
-- extended-M3U parsing for channel name, `tvg-id`, `tvg-name`, `tvg-logo`, `group-title`, `#EXTGRP`, and playlist-level EPG URL metadata,
-- IPTV list import from HTTP(S) URL, local `.m3u`/`.m3u8` file, or pasted M3U text,
-- a dedicated `livetv-iptv` IndexedDB database for multiple persistent IPTV lists and their channels,
-- channel search, group filtering, and incremental 200-row rendering for large lists,
-- explicit refresh for URL-backed IPTV lists with transactional replacement, so a failed refresh preserves the last valid stored list,
-- IPTV channel playback through the same unified player used by direct media, HLS, YouTube, History, and Playlists,
-- IPTV channel title/logo metadata flowing into the existing P3 history/favorites behavior after real playback begins,
-- non-fatal M3U parse warnings surfaced without rejecting otherwise valid playlists.
-- browser-native WebTorrent input from magnet URIs, local `.torrent` metadata files, and HTTP(S) `.torrent` URLs,
-- the official `/webtorrent/sw.js` WebTorrent stream bridge imported by LiveTV's existing root `/sw.js` worker, so one root registration owns both PWA shell behavior and torrent range streaming,
-- one active torrent session with metadata/file browsing, peer/progress/download/upload statistics, WebRTC no-peer guidance, and explicit Stop/cleanup,
-- lazy loading of the WebTorrent browser runtime so normal LiveTV startup does not load the large P2P client chunk,
-- torrent media selection streamed through the existing UnifiedPlayer using same-origin `/webtorrent/<info-hash>/<file-path>` transport URLs,
-- stable torrent History/Favorites/Playlist identity based on canonical magnet URI + torrent file path rather than the temporary stream URL,
-- torrent History/Playlist replay routed back through the Torrent workspace so the swarm/file session is rebuilt before UnifiedPlayer playback,
-- shared XMLTV parsing for channels, programme metadata, XMLTV timestamps, stop-time inference, and non-fatal malformed-row warnings,
-- a dedicated `livetv-epg` IndexedDB cache with transactional replacement, 6-hour freshness, 12-hour past retention, and 8-day future retention,
-- direct-first XMLTV fetch with local `.xml`/`.xmltv`/gzip import and a verified URL-backed API fallback when browser CORS blocks the feed,
-- conservative IPTV-to-XMLTV channel matching using exact `tvg-id`, unique folded id, and ambiguity-safe display-name fallback,
-- a functional `/guide` workspace with now/next status, today plus six following days, programme details, unmatched `EPG yok` channels, and existing-player channel actions.
+- one URL field and one **Yükle ve İzle** action,
+- automatic source classification for direct HTTP(S) video/audio, HLS/M3U8, and YouTube,
+- YouTube channel/@handle live discovery through `/api/youtube/resolve-live`, preferring the official YouTube Data API when configured and using the existing server fallback when needed,
+- session-aware YouTube embedding internally without exposing an account/Premium setting,
+- lazy-loaded Plyr and HLS.js playback engines,
+- browser-native fullscreen, PiP, seek, volume, and ordinary playback controls where the selected media/provider supports them,
+- a cinematic 16:9 desktop player and the same hierarchy stacked cleanly on phones,
+- concise loading and playback-error states,
+- the existing PWA/service-worker plumbing and API/media-worker boundaries.
 
-Authentication, watch-progress resume, recording/catch-up, reminders, and cross-device sync remain later roadmap phases.
+Earlier P3–P6 library, IPTV, WebTorrent, and XMLTV implementations remain in the repository as dormant internal code, but the current application entry path does not mount or expose those product surfaces. Their persistence databases are not deleted or migrated by this UI simplification.
 
 Current workspace boundaries:
 
