@@ -28,7 +28,7 @@ Instead:
 - the official WebTorrent worker is served at `/webtorrent/sw.js`;
 - that worker is registered with the narrower scope `/webtorrent/`;
 - WebTorrent `client.createServer({ controller: registration })` uses that registration;
-- selected torrent files receive same-origin `/webtorrent/...` streaming URLs;
+- selected torrent files receive same-origin `/webtorrent/webtorrent/...` streaming URLs (LiveTV's worker scope plus WebTorrent BrowserServer's own `webtorrent` segment);
 - requests under `/webtorrent/` are therefore handled by the more-specific WebTorrent worker rather than the LiveTV shell worker.
 
 The official worker source must come from the installed `webtorrent` package, not a CDN. Vite development/build plumbing may serve and emit that package worker at the stable `/webtorrent/sw.js` URL so the repository does not carry a silently stale copied minified worker.
@@ -178,7 +178,7 @@ Torrent data transport and media playback stay separate:
 
 ```ts
 type TorrentPlaybackDescriptor = {
-  streamUrl: string
+  streamUrl: string // /webtorrent/webtorrent/...
   preference: 'direct-video' | 'direct-audio'
   title: string
   librarySource: TorrentLibrarySource
@@ -192,7 +192,7 @@ No second `<video>` player or torrent-specific player controls are introduced.
 
 ## P3 History / Favorites / Playlists integration
 
-The transient `/webtorrent/...` stream URL is not a valid persistent identity. P5 extends `LibrarySource` with a torrent variant:
+The transient `/webtorrent/webtorrent/...` stream URL is not a valid persistent identity. P5 extends `LibrarySource` with a torrent variant:
 
 ```ts
 type TorrentLibrarySource = {
@@ -322,7 +322,7 @@ Use the Creative Commons Sintel WebTorrent sample from the WebTorrent project's 
 2. add the documented Sintel magnet URI;
 3. wait for metadata/file list;
 4. select the MP4 media file;
-5. verify the existing UnifiedPlayer loads a `/webtorrent/...` stream URL and reaches ready/playing;
+5. verify the existing UnifiedPlayer loads a `/webtorrent/webtorrent/...` stream URL and reaches ready/playing;
 6. verify peer/progress stats update where the environment allows;
 7. add the source to Favorite/History and verify the stored identity is magnet + file path rather than stream URL;
 8. replay from History and verify the torrent route/session is rebuilt;

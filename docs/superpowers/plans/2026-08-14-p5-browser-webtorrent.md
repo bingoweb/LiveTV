@@ -174,6 +174,7 @@ export type TorrentRuntime = {
   add(source: string | Uint8Array): TorrentRuntimeTorrent
   remove(torrent: TorrentRuntimeTorrent): Promise<void>
   destroy(): Promise<void>
+  onError(listener: (error: Error) => void): () => void
 }
 
 export type TorrentSnapshot = {
@@ -204,14 +205,14 @@ export type TorrentPlaybackDescriptor = {
 }
 ```
 
-- [ ] **Step 1: Write browser-runtime RED tests** with injected `navigator`/dynamic-import seams. Prove unsupported service-worker/WebRTC states fail locally, worker registration uses `/webtorrent/sw.js` + `/webtorrent/`, registration activation waits on the returned registration (not root `navigator.serviceWorker.ready`), client-level error listener is installed, and `createServer({ controller: registration })` is called once.
-- [ ] **Step 2: Implement `createBrowserWebTorrentRuntime()`**. Dynamically import WebTorrent only during initialization; prefer its browser distribution if Vite's normal import requires Node polyfills. Wrap callback/promise cleanup into `TorrentRuntime.remove()` with `destroyStore: true`; create torrents with `deselect: true` + `destroyStoreOnDestroy: true`.
-- [ ] **Step 3: Write TorrentController RED tests** with a fake `TorrentRuntime`. Cover initialize, magnet input, local file bytes, metadata-ready files, `noPeers` advisory state, fatal torrent error isolation, one-active-torrent replacement cleanup, stats refresh, preferred replay file, select file deselect/select behavior, direct-video/audio playback descriptor, and stop/destroy cleanup.
-- [ ] **Step 4: Run focused tests** and confirm RED where controller functionality is absent.
-- [ ] **Step 5: Implement TorrentController** with snapshot/subscription API, one active torrent, event listener registration/removal, 1-second stats timer, 5 MiB file guard, and best-effort beforeunload cleanup hook through an injectable environment seam.
-- [ ] **Step 6: Ensure `selectFile()` builds `TorrentLibrarySource` from runtime `infoHash + magnetURI + file.path` and returns WebTorrent `streamURL`; unsupported files reject without mutating active selection.
-- [ ] **Step 7: Run runtime/controller tests and web typecheck**; confirm PASS without network access.
-- [ ] **Step 8: Commit** with `feat: add Browser WebTorrent session controller`.
+- [x] **Step 1: Write browser-runtime RED tests** with injected `navigator`/dynamic-import seams. Prove unsupported service-worker/WebRTC states fail locally, worker registration uses `/webtorrent/sw.js` + `/webtorrent/`, registration activation waits on the returned registration (not root `navigator.serviceWorker.ready`), client-level error listener is installed, and `createServer({ controller: registration })` is called once.
+- [x] **Step 2: Implement `createBrowserWebTorrentRuntime()`**. Dynamically import WebTorrent only during initialization; use the package's browser-ready `dist/webtorrent.min.js` so broad Node polyfills are unnecessary. Wrap callback cleanup into `TorrentRuntime.remove()` with `destroyStore: true`; create torrents with `deselect: true` + `destroyStoreOnDestroy: true`. Installed WebTorrent source confirms that worker scope `/webtorrent/` yields stream URLs under `/webtorrent/webtorrent/...`.
+- [x] **Step 3: Write TorrentController RED tests** with a fake `TorrentRuntime`. Cover initialize, magnet input, local file bytes, metadata-ready files, `noPeers` advisory state, fatal torrent error isolation, one-active-torrent replacement cleanup, stats refresh, preferred replay file, select file deselect/select behavior, direct-video/audio playback descriptor, stop/destroy cleanup, and best-effort `beforeunload` cleanup.
+- [x] **Step 4: Run focused tests** and confirm RED where controller functionality is absent.
+- [x] **Step 5: Implement TorrentController** with snapshot/subscription API, one active torrent, event listener registration/removal, 1-second stats timer, 5 MiB file guard, and best-effort beforeunload cleanup hook through an injectable environment seam.
+- [x] **Step 6: Ensure `selectFile()` builds `TorrentLibrarySource` from runtime `infoHash + magnetURI + file.path` and returns WebTorrent `streamURL`; unsupported files reject without mutating active selection.
+- [x] **Step 7: Run runtime/controller tests and web typecheck**; confirm PASS without network access. Evidence: 15/15 runtime/controller tests pass and web typecheck exits 0. Focused web build also passes with the dedicated worker emitted; WebTorrent runtime remains tree-shaken until Task 4 consumes the controller.
+- [x] **Step 8: Commit** with `feat: add Browser WebTorrent session controller`.
 
 ---
 
