@@ -31,6 +31,7 @@ describe('LiveTV PWA assets', () => {
 
     expect(serviceWorker).toContain("url.pathname.startsWith('/api/')")
     expect(serviceWorker).toContain("url.pathname.startsWith('/media/')")
+    expect(serviceWorker).toContain("url.pathname.startsWith('/webtorrent/')")
     expect(serviceWorker).toContain("request.destination === 'video'")
     expect(serviceWorker).toContain("request.destination === 'audio'")
     expect(serviceWorker).toContain('event.respondWith')

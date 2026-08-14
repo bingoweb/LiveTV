@@ -45,14 +45,14 @@ export function readWebTorrentWorkerSource(): string
 export function webTorrentWorkerPlugin(): Plugin
 ```
 
-- [ ] **Step 1: Install WebTorrent as a direct web runtime dependency** with `npm install webtorrent@^3.0.11 -w @livetv/web`. Confirm package/lock changes only; do not add Node polyfill dependencies.
-- [ ] **Step 2: Inspect the installed package** and verify the browser worker exists at the package's `dist/sw.min.js`; record its actual resolved path without copying it into source control.
-- [ ] **Step 3: Write RED tests** for `resolveWebTorrentWorkerPath()` and `readWebTorrentWorkerSource()` proving the resolved source exists, is non-empty JavaScript, and contains WebTorrent worker behavior. Extend the PWA regression test to assert root `sw.js` still excludes video/audio/API/media traffic and does not cache `/webtorrent/` streams.
-- [ ] **Step 4: Run** `npx vitest run apps/web/src/torrent/webtorrent-worker.test.ts tests/pwa-assets.test.ts`; confirm RED because worker plumbing does not exist.
-- [ ] **Step 5: Implement `vite.webtorrent-worker.ts`** using Node filesystem/path APIs. Resolve the installed `webtorrent` package root from its runtime entry, read `dist/sw.min.js`, serve that source at `/webtorrent/sw.js` in Vite dev middleware, and emit `webtorrent/sw.js` during production build. Set JavaScript content type and `Cache-Control: no-cache` for dev worker responses.
-- [ ] **Step 6: Register `webTorrentWorkerPlugin()` in `vite.config.ts`** after React plugin. Do not change root PWA worker registration or scope.
-- [ ] **Step 7: Run focused tests, `npm run build -w @livetv/web`, and verify `apps/web/dist/webtorrent/sw.js` exists and is non-empty. Run `npm run licenses:check`; confirm WebTorrent is accepted under MIT.
-- [ ] **Step 8: Commit** with `feat: add WebTorrent worker runtime plumbing`.
+- [x] **Step 1: Install WebTorrent as a direct web runtime dependency** with `npm install webtorrent@^3.0.11 -w @livetv/web`. Confirm package/lock changes only; do not add Node polyfill dependencies. Evidence: npm resolved WebTorrent `3.0.21`; no broad Node polyfill dependency was added.
+- [x] **Step 2: Inspect the installed package** and verify the browser worker exists at the package's `dist/sw.min.js`; record its actual resolved path without copying it into source control. Evidence: installed package exposes `node_modules/webtorrent/dist/sw.min.js` and `dist/webtorrent.min.js`.
+- [x] **Step 3: Write RED tests** for `resolveWebTorrentWorkerPath()` and `readWebTorrentWorkerSource()` proving the resolved source exists, is non-empty JavaScript, and contains WebTorrent worker behavior. Extend the PWA regression test to assert root `sw.js` still excludes video/audio/API/media traffic and does not cache `/webtorrent/` streams.
+- [x] **Step 4: Run** `npx vitest run apps/web/src/torrent/webtorrent-worker.test.ts tests/pwa-assets.test.ts`; confirm RED because worker plumbing does not exist.
+- [x] **Step 5: Implement `vite.webtorrent-worker.ts`** using Node filesystem/path APIs. Resolve the installed `webtorrent` package root from its runtime entry, read `dist/sw.min.js`, serve that source at `/webtorrent/sw.js` in Vite dev middleware, and emit `webtorrent/sw.js` during production build. Set JavaScript content type and `Cache-Control: no-cache` for dev worker responses.
+- [x] **Step 6: Register `webTorrentWorkerPlugin()` in `vite.config.ts`** after React plugin. Do not change root PWA worker registration or scope. `tsconfig.node.json` enables TypeScript-extension imports only for the no-emit Vite config graph so Vite's native config-loader compatibility warning is avoided.
+- [x] **Step 7: Run focused tests, `npm run build -w @livetv/web`, and verify `apps/web/dist/webtorrent/sw.js` exists and is non-empty. Run `npm run licenses:check`; confirm WebTorrent is accepted under MIT. Evidence: 5/5 focused tests pass; production emits a 1.29 kB `dist/webtorrent/sw.js`; WebTorrent `3.0.21 — MIT`; license policy passes 20 direct dependencies. `npm audit` reports the known `webtorrent → torrent-discovery → bittorrent-tracker → ip` high-severity advisory chain with no viable modern fix (npm suggests a breaking downgrade to WebTorrent 0.7.3); P5 remains browser-only and adds no server-side arbitrary URL proxy/SSRF surface. This caveat will be carried into final documentation.
+- [x] **Step 8: Commit** with `feat: add WebTorrent worker runtime plumbing`.
 
 ---
 

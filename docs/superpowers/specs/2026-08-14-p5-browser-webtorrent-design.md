@@ -55,12 +55,7 @@ P5 maintains at most **one active torrent session**.
 
 ```ts
 type TorrentSessionStatus =
-  | 'idle'
-  | 'initializing'
-  | 'metadata'
-  | 'ready'
-  | 'streaming'
-  | 'error'
+  'idle' | 'initializing' | 'metadata' | 'ready' | 'streaming' | 'error'
 
 type TorrentFileDescriptor = {
   path: string
@@ -203,8 +198,8 @@ The transient `/webtorrent/...` stream URL is not a valid persistent identity. P
 type TorrentLibrarySource = {
   sourceKey: string
   kind: 'torrent'
-  url: string              // canonical magnet URI
-  title: string            // selected file display title
+  url: string // canonical magnet URI
+  title: string // selected file display title
   torrentFilePath: string
   torrentMediaType: 'video' | 'audio'
   thumbnailUrl?: string
