@@ -1,27 +1,33 @@
 import type { PlayerSource } from '@livetv/player-core'
 
+import type { TorrentLibrarySource } from '../torrent/torrent-types'
 import { createSourceKey } from './source-key'
 
-export type LibrarySourceKind = 'youtube' | 'hls' | 'video' | 'audio'
+export type LibrarySourceKind =
+  'youtube' | 'hls' | 'video' | 'audio' | 'torrent'
 
-export type LibrarySource = {
+export type StandardLibrarySource = {
   sourceKey: string
   url: string
-  kind: LibrarySourceKind
+  kind: Exclude<LibrarySourceKind, 'torrent'>
   title: string
   thumbnailUrl?: string
   channelUrl?: string
 }
 
-export type LibrarySourceMetadata = Partial<
-  Pick<LibrarySource, 'title' | 'thumbnailUrl' | 'channelUrl'>
->
+export type LibrarySource = StandardLibrarySource | TorrentLibrarySource
+
+export type LibrarySourceMetadata = {
+  title?: string
+  thumbnailUrl?: string
+  channelUrl?: string
+}
 
 export function toLibrarySource(
   source: PlayerSource,
   metadata: LibrarySourceMetadata = {},
 ): LibrarySource {
-  const kind: LibrarySourceKind =
+  const kind: StandardLibrarySource['kind'] =
     source.kind === 'youtube'
       ? 'youtube'
       : source.kind === 'hls'

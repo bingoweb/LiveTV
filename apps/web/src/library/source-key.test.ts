@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { toLibrarySource } from './library-types'
 import { createSourceKey } from './source-key'
+import { createTorrentLibrarySource } from '../torrent/torrent-source'
 
 describe('library source identity', () => {
   it('uses the YouTube video id as stable identity', () => {
@@ -69,5 +70,17 @@ describe('library source identity', () => {
       thumbnailUrl: 'https://img.example/thumb.jpg',
       channelUrl: 'https://www.youtube.com/@channel',
     })
+  })
+
+  it('preserves a stable torrent library source key instead of its magnet URL', () => {
+    const source = createTorrentLibrarySource({
+      infoHash: '0123456789abcdef0123456789abcdef01234567',
+      magnetUri: 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567',
+      filePath: 'Movie/Sintel.mp4',
+      fileName: 'Sintel.mp4',
+      mediaType: 'video',
+    })
+
+    expect(createSourceKey(source)).toBe(source.sourceKey)
   })
 })

@@ -32,7 +32,9 @@ export function playerRequestForLibrarySource(
     preference: playerPreferenceForLibrarySource(source),
     title: source.title,
     ...(source.thumbnailUrl ? { thumbnailUrl: source.thumbnailUrl } : {}),
-    ...(source.channelUrl ? { channelUrl: source.channelUrl } : {}),
+    ...('channelUrl' in source && source.channelUrl
+      ? { channelUrl: source.channelUrl }
+      : {}),
   })
 }
 

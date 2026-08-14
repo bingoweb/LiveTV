@@ -117,14 +117,14 @@ export function choosePreferredTorrentFile(
 ): TorrentFileDescriptor | null
 ```
 
-- [ ] **Step 1: Write RED helper tests** proving magnet URI acceptance, HTTP(S) torrent URL acceptance, rejection of ordinary media/file/custom schemes, 5 MiB constant, media classification for documented video/audio extensions, unsupported fallback, preferred path selection, single-playable auto selection, and multi-playable no-auto-selection.
-- [ ] **Step 2: Add stable identity RED tests** proving source key is deterministic from lower-cased infoHash + encoded file path and canonical magnet URI is stored instead of `/webtorrent/...` stream URL.
-- [ ] **Step 3: Extend P3 repository RED tests** with torrent History/Favorite/Playlist records. Prove valid torrent records survive read guards while malformed torrent records missing file path/media type are skipped; existing source kinds remain valid.
-- [ ] **Step 4: Run focused tests** and confirm RED.
-- [ ] **Step 5: Implement torrent helper types/functions** with deterministic validation and file classification. Do not import WebTorrent runtime into these pure helpers.
-- [ ] **Step 6: Extend `LibrarySource` to include the torrent variant** and update P3 read guards/kind labels. Existing `toLibrarySource(PlayerSource)` remains for non-torrent sources; torrent sources are constructed only by `createTorrentLibrarySource()`.
-- [ ] **Step 7: Run helper/P3 repository/UI tests plus web typecheck**; confirm PASS and no P3 regression.
-- [ ] **Step 8: Commit** with `feat: add persistent torrent source identity`.
+- [x] **Step 1: Write RED helper tests** proving magnet URI acceptance, HTTP(S) torrent URL acceptance, rejection of ordinary media/file/custom schemes, 5 MiB constant, media classification for documented video/audio extensions, unsupported fallback, preferred path selection, single-playable auto selection, and multi-playable no-auto-selection.
+- [x] **Step 2: Add stable identity RED tests** proving source key is deterministic from lower-cased infoHash + encoded file path and canonical magnet URI is stored instead of `/webtorrent/...` stream URL.
+- [x] **Step 3: Extend P3 repository RED tests** with torrent History/Favorite/Playlist records. Prove valid torrent records survive read guards while malformed torrent records missing file path/media type are skipped; existing source kinds remain valid.
+- [x] **Step 4: Run focused tests** and confirm RED.
+- [x] **Step 5: Implement torrent helper types/functions** with deterministic validation and file classification. Do not import WebTorrent runtime into these pure helpers.
+- [x] **Step 6: Extend `LibrarySource` to include the torrent variant** and update P3 read guards/kind labels. Existing `toLibrarySource(PlayerSource)` remains for non-torrent sources; torrent sources are constructed only by `createTorrentLibrarySource()`. The legacy library-to-player mapper explicitly rejects torrent sources so they cannot accidentally be classified as ordinary direct video before replay coordination lands.
+- [x] **Step 7: Run helper/P3 repository/UI tests plus web typecheck**; confirm PASS and no P3 regression. Evidence: 28/28 focused helper/repository/History/Playlist tests pass; web typecheck exits 0.
+- [x] **Step 8: Commit** with `feat: add persistent torrent source identity`.
 
 ---
 

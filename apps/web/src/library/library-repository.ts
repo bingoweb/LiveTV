@@ -66,6 +66,7 @@ const LIBRARY_SOURCE_KINDS = new Set<LibrarySource['kind']>([
   'hls',
   'video',
   'audio',
+  'torrent',
 ])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -96,6 +97,17 @@ function isLibrarySource(value: unknown): value is LibrarySource {
   }
   if (value.channelUrl !== undefined && typeof value.channelUrl !== 'string') {
     return false
+  }
+
+  if (value.kind === 'torrent') {
+    if (
+      !value.url.toLowerCase().startsWith('magnet:') ||
+      typeof value.torrentFilePath !== 'string' ||
+      !value.torrentFilePath.trim() ||
+      (value.torrentMediaType !== 'video' && value.torrentMediaType !== 'audio')
+    ) {
+      return false
+    }
   }
 
   return true

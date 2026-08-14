@@ -16,6 +16,7 @@ const kindLabels: Record<LibrarySource['kind'], string> = {
   hls: 'HLS',
   video: 'Video',
   audio: 'Ses',
+  torrent: 'Torrent',
 }
 
 export function HistoryLibraryView({
