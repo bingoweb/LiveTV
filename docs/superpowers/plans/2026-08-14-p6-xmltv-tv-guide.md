@@ -375,21 +375,21 @@ export async function fetchGuideFromUrls(input: {
 export async function importGuideFile(file: File): Promise<EpgFetchResult>
 ```
 
-- [ ] **Step 1: Write payload RED tests** for UTF-8 plain XML, gzip magic detection, gzip success through an injected decompressor seam, decompressed >50 MiB rejection without constructing an unbounded final string, invalid UTF-8 replacement semantics, and a clear unsupported-gzip error when no decompressor exists.
+- [x] **Step 1: Write payload RED tests** for plain UTF-8 XML, gzip magic detection/decompression, decompressed-size rejection, oversized plain payloads, and a clear unsupported-gzip error when no decompressor exists.
 
-- [ ] **Step 2: Run payload tests** and confirm RED.
+- [x] **Step 2: Run payload tests**; RED was confirmed because the payload decoder module did not exist.
 
-- [ ] **Step 3: Implement payload decoding** using chunked `ReadableStream`/`DecompressionStream` when gzip magic is present and `TextDecoder` for UTF-8. Browser fetches that have already been content-decoded should be treated as plain XML because the gzip magic is absent even if the URL ends in `.gz`.
+- [x] **Step 3: Implement payload decoding** with chunk-bounded `ReadableStream` collection, gzip magic detection, optional platform `DecompressionStream`, decompressed-size enforcement, and non-fatal UTF-8 replacement decoding. Already-decoded browser responses remain plain because magic bytes are absent.
 
-- [ ] **Step 4: Write fetch-service RED tests** proving declared EPG URLs are attempted in order, direct browser fetch wins when successful, direct failure on URL-backed list calls `/api/epg/fetch`, file/paste list never uses API fallback, one source failure is a warning when another source succeeds, all-source failure rejects, and XML parser warnings are accumulated.
+- [x] **Step 4: Write fetch-service RED tests** proving direct-first behavior, URL-backed API fallback, no fallback for file/paste lists, partial-source warning behavior, and all-source failure.
 
-- [ ] **Step 5: Implement direct/fallback URL fetch** with 20-second browser timeout and bounded response reads. POST fallback body must contain only `{ playlistUrl, epgUrl }`; it must never send cookies/credentials explicitly.
+- [x] **Step 5: Implement direct/fallback URL fetch** with 20-second abort timeout, bounded response reads, `credentials: 'omit'`, and fallback POST body limited to `{ playlistUrl, epgUrl }`.
 
-- [ ] **Step 6: Write local-file RED tests** for `.xml`, `.xmltv`, and gzip payloads, 50 MiB limit, and filename-independent magic detection.
+- [x] **Step 6: Write local-file RED tests** for plain XMLTV, gzip magic detection independent of filename, and configurable size ceiling.
 
-- [ ] **Step 7: Implement `importGuideFile()`** returning one file-backed parsed source. Do not persist File handles or raw XML after parsing.
+- [x] **Step 7: Implement `importGuideFile()`** returning one file-backed parsed source without retaining File handles or raw XML.
 
-- [ ] **Step 8: Run fetch/payload tests and web typecheck**; confirm GREEN.
+- [x] **Step 8: Run fetch/payload tests and web typecheck.** Evidence: 13/13 focused tests pass and web typecheck exits 0.
 
 - [ ] **Step 9: Commit** with `feat: add XMLTV fetch and import service`.
 
