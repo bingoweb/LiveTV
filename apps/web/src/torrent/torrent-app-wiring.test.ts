@@ -2,14 +2,15 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-describe('P5 torrent application wiring', () => {
-  it('routes torrent playback descriptors and saved-source replays through App', () => {
+describe('P5 torrent code remains dormant behind the simple watch entry path', () => {
+  it('keeps torrent/library orchestration out of App', () => {
     const app = readFileSync('apps/web/src/App.tsx', 'utf8')
 
-    expect(app).toContain('playerRequestForTorrentPlayback')
-    expect(app).toContain('playbackRequestForLibrarySource')
-    expect(app).toContain('torrentReplayRequest')
-    expect(app).toContain('onPlayTorrentDescriptor')
+    expect(app).toContain('<UnifiedPlayer />')
+    expect(app).not.toContain('playerRequestForTorrentPlayback')
+    expect(app).not.toContain('playbackRequestForLibrarySource')
+    expect(app).not.toContain('TorrentProvider')
+    expect(app).not.toContain('torrentReplayRequest')
   })
 
   it('passes torrent playback and replay props through RouteContent', () => {
@@ -24,13 +25,14 @@ describe('P5 torrent application wiring', () => {
     expect(routeContent).toContain('replayRequest={torrentReplayRequest}')
   })
 
-  it('keeps the stable torrent library source inside UnifiedPlayer', () => {
+  it('keeps torrent/library state out of the visible UnifiedPlayer', () => {
     const unifiedPlayer = readFileSync(
       'apps/web/src/components/UnifiedPlayer.tsx',
       'utf8',
     )
 
-    expect(unifiedPlayer).toContain('resolvePlayerLibrarySource')
-    expect(unifiedPlayer).toContain('librarySourceOverride')
+    expect(unifiedPlayer).not.toContain('resolvePlayerLibrarySource')
+    expect(unifiedPlayer).not.toContain('librarySourceOverride')
+    expect(unifiedPlayer).not.toContain('Torrent')
   })
 })
