@@ -74,8 +74,10 @@ function DesktopNavigation({ activeRoute, onNavigate }: NavigationProps) {
         <div className="phase-card">
           <span className="phase-chip">{appMeta.phase}</span>
           <div>
-            <strong>Guest local library</strong>
-            <small>Geçmiş, favoriler ve playlistler cihazda kalıcı.</small>
+            <strong>IPTV & M3U library</strong>
+            <small>
+              M3U listeleri, kanallar ve kişisel kütüphane cihazda kalıcı.
+            </small>
           </div>
         </div>
       </div>

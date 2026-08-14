@@ -27,6 +27,7 @@ export type IptvSnapshot = {
   activeListId: string | null
   channels: readonly IptvChannel[]
   errorMessage?: string
+  noticeMessage?: string
 }
 
 export type IptvImporters = {
@@ -65,6 +66,11 @@ function importInput(
     epgUrls: result.playlist.epgUrls,
     channels: result.playlist.channels,
   }
+}
+
+function warningNotice(result: IptvImportResult) {
+  const count = result.playlist.warnings.length
+  return count > 0 ? `${count} geçersiz M3U kaydı atlandı.` : undefined
 }
 
 export class IptvController {
@@ -114,21 +120,31 @@ export class IptvController {
     return await this.initialization
   }
 
-  private async selectImportedList(list: IptvList) {
+  private async selectImportedList(list: IptvList, noticeMessage?: string) {
     const repository = this.requireRepository()
     const [lists, channels] = await Promise.all([
       repository.listLists(),
       repository.listChannels(list.id),
     ])
-    this.emit({ status: 'ready', lists, activeListId: list.id, channels })
+    this.emit({
+      status: 'ready',
+      lists,
+      activeListId: list.id,
+      channels,
+      ...(noticeMessage ? { noticeMessage } : {}),
+    })
   }
 
   async importUrl(url: string, name?: string) {
     const result = await this.importers.fromUrl(url)
     const list = await this.requireRepository().importList(
-      importInput(result, { name, sourceType: 'url', sourceUrl: url }),
+      importInput(result, {
+        name,
+        sourceType: 'url',
+        sourceUrl: url.trim(),
+      }),
     )
-    await this.selectImportedList(list)
+    await this.selectImportedList(list, warningNotice(result))
   }
 
   async importFile(file: File, name?: string) {
@@ -136,7 +152,7 @@ export class IptvController {
     const list = await this.requireRepository().importList(
       importInput(result, { name, sourceType: 'file' }),
     )
-    await this.selectImportedList(list)
+    await this.selectImportedList(list, warningNotice(result))
   }
 
   async importText(text: string, name?: string) {
@@ -144,20 +160,30 @@ export class IptvController {
     const list = await this.requireRepository().importList(
       importInput(result, { name, sourceType: 'paste' }),
     )
-    await this.selectImportedList(list)
+    await this.selectImportedList(list, warningNotice(result))
   }
 
   async selectList(id: string | null) {
     const repository = this.requireRepository()
     if (id === null) {
-      this.emit({ ...this.snapshot, status: 'ready', activeListId: null, channels: [] })
+      this.emit({
+        status: 'ready',
+        lists: this.snapshot.lists,
+        activeListId: null,
+        channels: [],
+      })
       return
     }
     if (!this.snapshot.lists.some((list) => list.id === id)) {
       throw new Error('IPTV listesi bulunamadı.')
     }
     const channels = await repository.listChannels(id)
-    this.emit({ ...this.snapshot, status: 'ready', activeListId: id, channels })
+    this.emit({
+      status: 'ready',
+      lists: this.snapshot.lists,
+      activeListId: id,
+      channels,
+    })
   }
 
   async refreshList(id: string) {
@@ -188,9 +214,13 @@ export class IptvController {
         lists,
         activeListId: this.snapshot.activeListId,
         channels,
+        ...(warningNotice(result)
+          ? { noticeMessage: warningNotice(result) }
+          : {}),
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'IPTV listesi yenilenemedi.'
+      const message =
+        error instanceof Error ? error.message : 'IPTV listesi yenilenemedi.'
       this.emit({ ...this.snapshot, status: 'ready', errorMessage: message })
       throw error
     }
@@ -213,10 +243,12 @@ export class IptvController {
   }
 }
 
-export function createIptvController(options: {
-  repositoryFactory?: IptvRepositoryFactory
-  importers?: IptvImporters
-} = {}) {
+export function createIptvController(
+  options: {
+    repositoryFactory?: IptvRepositoryFactory
+    importers?: IptvImporters
+  } = {},
+) {
   return new IptvController(
     options.repositoryFactory ?? createIptvRepository,
     options.importers ?? DEFAULT_IMPORTERS,

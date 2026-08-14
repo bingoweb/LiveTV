@@ -42,7 +42,7 @@ function splitOutsideQuotes(input: string, separator: string) {
   for (let index = 0; index < input.length; index += 1) {
     const character = input[index]
     if (character === '"' || character === "'") {
-      quote = quote === character ? null : quote ?? character
+      quote = quote === character ? null : (quote ?? character)
       continue
     }
     if (!quote && character === separator) {
@@ -100,9 +100,7 @@ function parseEpgUrls(line: string) {
 function resolveStreamUrl(
   value: string,
   baseUrl: string | undefined,
-):
-  | { url: string }
-  | { code: M3uParseWarning['code']; message: string } {
+): { url: string } | { code: M3uParseWarning['code']; message: string } {
   const trimmed = value.trim()
   const hasScheme = /^[A-Za-z][A-Za-z0-9+.-]*:/.test(trimmed)
 

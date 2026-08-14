@@ -11,12 +11,27 @@ const validPlaylist = `#EXTM3U
 #EXTINF:-1 group-title="Haber",Haber
 https://example.com/live.m3u8`
 
+async function captureError(promise: Promise<unknown>) {
+  let caught: unknown
+  try {
+    await promise
+  } catch (error) {
+    caught = error
+  }
+  expect(caught).toBeInstanceOf(Error)
+  return caught as Error
+}
+
 describe('IPTV import service', () => {
   it('imports an HTTP playlist and resolves relative channel URLs against it', async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(`#EXTM3U
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          `#EXTM3U
 #EXTINF:-1,Relative
-../streams/live.m3u8`, { status: 200 }),
+../streams/live.m3u8`,
+          { status: 200 },
+        ),
     )
 
     const result = await importIptvFromUrl(
@@ -57,21 +72,38 @@ describe('IPTV import service', () => {
         }),
     )
 
-    await expect(
+    const error = await captureError(
       importIptvFromUrl('https://lists.example/slow.m3u', {
         fetchImpl,
         timeoutMs: 5,
       }),
-    ).rejects.toThrow('zaman aşımına')
+    )
+
+    expect(error.message).toContain('zaman aşımına')
+    expect(error.cause).toMatchObject({ name: 'AbortError' })
+  })
+
+  it('preserves a non-Error fetch rejection as the cause of the user-facing error', async () => {
+    const fetchImpl = vi.fn(async () => {
+      throw 'network-sentinel'
+    })
+
+    const error = await captureError(
+      importIptvFromUrl('https://lists.example/fail.m3u', { fetchImpl }),
+    )
+
+    expect(error.message).toBe('IPTV listesi indirilemedi.')
+    expect(error.cause).toBe('network-sentinel')
   })
 
   it('rejects an oversized response from Content-Length before reading it', async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(validPlaylist, {
-        headers: {
-          'content-length': String(IPTV_MAX_IMPORT_BYTES + 1),
-        },
-      }),
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(validPlaylist, {
+          headers: {
+            'content-length': String(IPTV_MAX_IMPORT_BYTES + 1),
+          },
+        }),
     )
 
     await expect(

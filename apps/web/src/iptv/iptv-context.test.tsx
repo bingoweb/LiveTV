@@ -92,7 +92,9 @@ class MemoryIptvRepository implements IptvRepository {
 function importers(overrides: Partial<IptvImporters> = {}): IptvImporters {
   const result = {
     playlist: {
-      channels: [{ name: 'Yeni Kanal', streamUrl: 'https://new.example/live.m3u8' }],
+      channels: [
+        { name: 'Yeni Kanal', streamUrl: 'https://new.example/live.m3u8' },
+      ],
       epgUrls: ['https://epg.example/new.xml'],
       warnings: [],
     },
@@ -210,13 +212,56 @@ describe('IPTV controller/provider', () => {
     await controller.initialize()
     const before = controller.getSnapshot()
 
-    await expect(controller.refreshList('list-2')).rejects.toThrow('CORS engeli')
+    await expect(controller.refreshList('list-2')).rejects.toThrow(
+      'CORS engeli',
+    )
 
     expect(controller.getSnapshot()).toMatchObject({
       status: 'ready',
       activeListId: before.activeListId,
       channels: before.channels,
       errorMessage: 'CORS engeli',
+    })
+  })
+
+  it('surfaces non-fatal parser warning counts after a successful import', async () => {
+    const repository = await seededRepository()
+    const controller = createIptvController({
+      repositoryFactory: async () => repository,
+      importers: importers({
+        fromText: () => ({
+          playlist: {
+            channels: [
+              {
+                name: 'Sağlam Kanal',
+                streamUrl: 'https://example.com/live.m3u8',
+              },
+            ],
+            epgUrls: [],
+            warnings: [
+              {
+                line: 3,
+                code: 'unsupported-protocol',
+                message: 'unsupported',
+              },
+              {
+                line: 7,
+                code: 'invalid-url',
+                message: 'invalid',
+              },
+            ],
+          },
+          suggestedName: 'Uyarılı Liste',
+        }),
+      }),
+    })
+    await controller.initialize()
+
+    await controller.importText('#EXTM3U')
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'ready',
+      noticeMessage: '2 geçersiz M3U kaydı atlandı.',
     })
   })
 

@@ -198,7 +198,8 @@ The generic P3/P2 placeholder for `/iptv` becomes a functional IPTV library pane
 - list name, channel count, last-updated timestamp
 - **Yenile** only for URL lists
 - **Listeyi sil**
-- non-fatal parse warning count
+
+The latest successful import/refresh may also expose a transient non-fatal parse warning count. P4 does not persist warning rows/counts after that feedback because they are diagnostics for the specific import operation rather than stable channel-library metadata.
 
 ### Channel browser
 
@@ -242,7 +243,7 @@ User-visible failures include:
 - IndexedDB unavailable;
 - URL-list refresh failed while old data was preserved.
 
-Non-fatal conditions are reported as warning counts, including malformed entries, unsupported URL protocols, relative URLs without a base, and channel metadata without a following URL.
+Non-fatal conditions are reported as a transient warning count for the latest successful import/refresh, including malformed entries, unsupported URL protocols, relative URLs without a base, and channel metadata without a following URL.
 
 The player remains usable even when IPTV persistence/import fails.
 

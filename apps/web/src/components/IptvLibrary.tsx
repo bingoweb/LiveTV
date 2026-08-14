@@ -78,7 +78,10 @@ export function IptvLibraryView({
 }: IptvLibraryViewProps) {
   if (iptv.status === 'loading') {
     return (
-      <aside className="context-panel iptv-library-panel" aria-label="IPTV kütüphanesi">
+      <aside
+        className="context-panel iptv-library-panel"
+        aria-label="IPTV kütüphanesi"
+      >
         <div className="library-unavailable" role="status">
           <strong>IPTV kütüphanesi yükleniyor…</strong>
           <p>Kayıtlı M3U listeleri cihazdan okunuyor.</p>
@@ -89,12 +92,15 @@ export function IptvLibraryView({
 
   if (iptv.status === 'unavailable') {
     return (
-      <aside className="context-panel iptv-library-panel" aria-label="IPTV kütüphanesi">
+      <aside
+        className="context-panel iptv-library-panel"
+        aria-label="IPTV kütüphanesi"
+      >
         <div className="library-unavailable" role="status">
           <strong>IPTV kütüphanesi kullanılamıyor</strong>
           <p>
-            Yerel kayıt erişimi engelli. Doğrudan yayın URL’si sağdaki oynatıcıda
-            çalışmaya devam eder.
+            Yerel kayıt erişimi engelli. Doğrudan yayın URL’si sağdaki
+            oynatıcıda çalışmaya devam eder.
           </p>
         </div>
       </aside>
@@ -108,7 +114,10 @@ export function IptvLibraryView({
   const visibleChannels = filteredChannels.slice(0, visibleLimit)
 
   return (
-    <aside className="context-panel iptv-library-panel" aria-label="IPTV kütüphanesi">
+    <aside
+      className="context-panel iptv-library-panel"
+      aria-label="IPTV kütüphanesi"
+    >
       <div className="context-heading iptv-library-heading">
         <span className="eyebrow">P4 · cihazda saklanır</span>
         <h2>IPTV / M3U kütüphanesi</h2>
@@ -186,9 +195,9 @@ export function IptvLibraryView({
           <p className="iptv-action-message is-error" role="alert">
             {actionError ?? iptv.errorMessage}
           </p>
-        ) : actionMessage ? (
+        ) : (iptv.noticeMessage ?? actionMessage) ? (
           <p className="iptv-action-message" role="status">
-            {actionMessage}
+            {iptv.noticeMessage ?? actionMessage}
           </p>
         ) : null}
       </section>
@@ -231,7 +240,9 @@ export function IptvLibraryView({
                     {formatUpdatedAt(activeList.updatedAt)}
                   </small>
                   {activeList.epgUrls.length > 0 ? (
-                    <small>{activeList.epgUrls.length} EPG referansı saklandı</small>
+                    <small>
+                      {activeList.epgUrls.length} EPG referansı saklandı
+                    </small>
                   ) : null}
                 </div>
                 <div className="iptv-list-actions">
@@ -284,7 +295,9 @@ export function IptvLibraryView({
                 value={group ?? ALL_GROUPS}
                 onChange={(event) =>
                   onGroupChange(
-                    event.target.value === ALL_GROUPS ? null : event.target.value,
+                    event.target.value === ALL_GROUPS
+                      ? null
+                      : event.target.value,
                   )
                 }
               >
@@ -326,7 +339,11 @@ export function IptvLibraryView({
           )}
 
           {visibleChannels.length < filteredChannels.length ? (
-            <button className="iptv-show-more" type="button" onClick={onShowMore}>
+            <button
+              className="iptv-show-more"
+              type="button"
+              onClick={onShowMore}
+            >
               Daha fazla göster
             </button>
           ) : null}
@@ -366,7 +383,9 @@ export function IptvLibrary({
       await operation()
       setActionMessage(success)
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'IPTV işlemi başarısız.')
+      setActionError(
+        error instanceof Error ? error.message : 'IPTV işlemi başarısız.',
+      )
     } finally {
       setActionPending(false)
     }
@@ -398,7 +417,9 @@ export function IptvLibrary({
         setVisibleLimit(PAGE_SIZE)
       }}
       onShowMore={() => setVisibleLimit((current) => current + PAGE_SIZE)}
-      onSelectList={(id) => void run(() => iptv.selectList(id), 'Liste açıldı.')}
+      onSelectList={(id) =>
+        void run(() => iptv.selectList(id), 'Liste açıldı.')
+      }
       onPlayChannel={onPlayChannel}
       onImportNameChange={setImportName}
       onImportUrlChange={setImportUrl}
@@ -431,7 +452,10 @@ export function IptvLibrary({
       }}
       onRefreshList={() => {
         if (!activeList) return
-        void run(() => iptv.refreshList(activeList.id), 'IPTV listesi yenilendi.')
+        void run(
+          () => iptv.refreshList(activeList.id),
+          'IPTV listesi yenilendi.',
+        )
       }}
       onDeleteList={() => {
         if (!activeList) return

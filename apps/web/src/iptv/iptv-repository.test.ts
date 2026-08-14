@@ -41,13 +41,14 @@ describe('IPTV IndexedDB repository', () => {
   it('persists imported list metadata and channel order across repository instances', async () => {
     const repository = await createIptvRepository({ databaseName })
     const list = await repository.importList(
-      input('Haber Paketi', [
-        'https://example.com/a.m3u8',
-        'https://example.com/b.m3u8',
-      ], {
-        sourceType: 'url',
-        sourceUrl: 'https://lists.example/main.m3u',
-      }),
+      input(
+        'Haber Paketi',
+        ['https://example.com/a.m3u8', 'https://example.com/b.m3u8'],
+        {
+          sourceType: 'url',
+          sourceUrl: 'https://lists.example/main.m3u',
+        },
+      ),
     )
 
     const reopened = await createIptvRepository({ databaseName })
@@ -142,21 +143,24 @@ describe('IPTV IndexedDB repository', () => {
 
     const replaced = await repository.replaceList(
       list.id,
-      input('URL Liste', [
-        'https://example.com/new-1.m3u8',
-        'https://example.com/new-2.m3u8',
-      ], {
-        sourceType: 'url',
-        sourceUrl: 'https://lists.example/live.m3u',
-        importedAt: 500,
-      }),
+      input(
+        'URL Liste',
+        ['https://example.com/new-1.m3u8', 'https://example.com/new-2.m3u8'],
+        {
+          sourceType: 'url',
+          sourceUrl: 'https://lists.example/live.m3u',
+          importedAt: 500,
+        },
+      ),
     )
 
     expect(replaced.importedAt).toBe(100)
     expect(replaced.updatedAt).toBe(500)
     expect(replaced.channelCount).toBe(2)
     expect(
-      (await repository.listChannels(list.id)).map(({ streamUrl }) => streamUrl),
+      (await repository.listChannels(list.id)).map(
+        ({ streamUrl }) => streamUrl,
+      ),
     ).toEqual([
       'https://example.com/new-1.m3u8',
       'https://example.com/new-2.m3u8',

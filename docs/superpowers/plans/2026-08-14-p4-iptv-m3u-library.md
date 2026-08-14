@@ -71,9 +71,7 @@ export function filterIptvChannels<T extends ParsedIptvChannel>(
   options: { query: string; group: string | null },
 ): T[]
 
-export function listIptvGroups(
-  channels: readonly ParsedIptvChannel[],
-): string[]
+export function listIptvGroups(channels: readonly ParsedIptvChannel[]): string[]
 ```
 
 - [x] **Step 1: Write parser RED tests** covering quoted/unquoted `#EXTINF` attributes, comma-containing display names, `#EXTGRP` fallback, header EPG extraction, signed query/fragment preservation, URL-relative resolution, file/paste-relative rejection, malformed-row warnings, and duplicate elimination.
@@ -87,22 +85,23 @@ https://cdn.example/live/index.m3u8?token=abc#edge
 #EXTINF:-1 group-title="Belgesel",Belgesel
 ../relative/stream.m3u8`
 
-expect(parseM3u(text, { baseUrl: 'https://lists.example/main/list.m3u' }))
-  .toMatchObject({
-    epgUrls: ['https://epg.example/guide.xml'],
-    channels: [
-      {
-        tvgId: 'news.tr',
-        name: 'Haber 1',
-        groupTitle: 'Haber',
-        streamUrl: 'https://cdn.example/live/index.m3u8?token=abc#edge',
-      },
-      {
-        name: 'Belgesel',
-        streamUrl: 'https://lists.example/relative/stream.m3u8',
-      },
-    ],
-  })
+expect(
+  parseM3u(text, { baseUrl: 'https://lists.example/main/list.m3u' }),
+).toMatchObject({
+  epgUrls: ['https://epg.example/guide.xml'],
+  channels: [
+    {
+      tvgId: 'news.tr',
+      name: 'Haber 1',
+      groupTitle: 'Haber',
+      streamUrl: 'https://cdn.example/live/index.m3u8?token=abc#edge',
+    },
+    {
+      name: 'Belgesel',
+      streamUrl: 'https://lists.example/relative/stream.m3u8',
+    },
+  ],
+})
 ```
 
 - [x] **Step 2: Run** `npx vitest run apps/web/src/iptv/m3u-parser.test.ts` and confirm RED because parser modules do not exist.
@@ -336,26 +335,26 @@ export function playerPreferenceForIptvChannel(
 - Modify: `apps/web/src/components/Navigation.tsx`
 - Modify: this plan for evidence/checkmarks.
 
-- [ ] **Step 1: Update milestone copy** from P3 to P4 where it describes the current repository phase. Sidebar phase card becomes `P4` / `IPTV & M3U library`; historical references to P2/P3 remain where they describe earlier architecture.
-- [ ] **Step 2: Update README** with URL/file/paste imports, `livetv-iptv`, 10 MiB limit, CORS behavior, URL refresh semantics, search/groups, existing-player handoff, EPG metadata preservation, and no-proxy/no-XMLTV boundaries.
-- [ ] **Step 3: Run full local quality gate:** `npm run verify`, `git diff --check`, `docker compose config`. Expected: zero failures; existing HLS chunk-size warning may remain non-fatal.
-- [ ] **Step 4: Docker rebuild/acceptance:** preserve the server-only YouTube API key without printing it, rebuild `web/api/media-worker`, verify `/`, `/api/health`, `/media/health`, and the existing Halk TV Data API resolver.
-- [ ] **Step 5: Browser acceptance with Chrome DevTools:** import a deterministic M3U fixture through paste or file; verify list persistence, channel count, group filter, search, channel open in UnifiedPlayer, hard-reload persistence, and list deletion cascade. Also verify P3 favorites/history/playlists remain usable and application console is clean.
-- [ ] **Step 6: URL-refresh acceptance:** where a deterministic local/static HTTP M3U fixture can be served through the existing development web origin, import it by URL, update the fixture or use a controlled variant, press **Yenile**, and verify replacement. If the fixture intentionally fails, verify old stored rows remain visible.
-- [ ] **Step 7: Mark plan evidence and commit** with `chore: complete P4 IPTV M3U milestone`.
+- [x] **Step 1: Update milestone copy** from P3 to P4 where it describes the current repository phase. Sidebar phase card becomes `P4` / `IPTV & M3U library`; historical references to P2/P3 remain where they describe earlier architecture. Evidence: `appMeta.phase` and current UI copy are P4; stale-current-copy tests pass.
+- [x] **Step 2: Update README** with URL/file/paste imports, `livetv-iptv`, 10 MiB limit, CORS behavior, URL refresh semantics, search/groups, existing-player handoff, EPG metadata preservation, and no-proxy/no-XMLTV boundaries.
+- [x] **Step 3: Run full local quality gate:** `npm run verify`, `git diff --check`, `docker compose config`. Evidence: 33 test files / 125 tests pass; Prettier, ESLint, all workspace typechecks/builds, 19-dependency license policy, diff check, and Compose config pass. Only the existing non-fatal 573.85 kB HLS chunk warning remains.
+- [x] **Step 4: Docker rebuild/acceptance:** preserve the server-only YouTube API key without printing it, rebuild `web/api/media-worker`, verify `/`, `/api/health`, `/media/health`, and the existing Halk TV Data API resolver. Evidence: Colima runtime was restarted after its socket was found stopped; rebuilt stack is healthy and Halk TV resolved `live` through `data-api` with `officialApiAvailable: true` without exposing the key.
+- [x] **Step 5: Browser acceptance with Chrome DevTools:** import a deterministic M3U fixture through paste or file; verify list persistence, channel count, group filter, search, channel open in UnifiedPlayer, hard-reload persistence, and list deletion cascade. Also verify P3 favorites/history/playlists remain usable and application console is clean. Evidence: isolated context `livetv-p4-final` imported `P4 Browser Test` (2 valid channels + 1 non-fatal warning + 1 EPG reference), persisted across full navigation, search/group filtering returned the expected single channel, `P4 Demo Video` reached real `Oynatılıyor`, History/Favorite/`P4 Kabul Listesi` retained its title, deleting lists reduced 2→1 and then 1→0 with the correct remaining channels, and final YouTube navigation had no console error/warn.
+- [x] **Step 6: URL-refresh acceptance:** where a deterministic local/static HTTP M3U fixture can be served through the existing development web origin, import it by URL, update the fixture or use a controlled variant, press **Yenile**, and verify replacement. If the fixture intentionally fails, verify old stored rows remain visible. Evidence: temporary CORS-enabled `127.0.0.1:8099/list.m3u` imported as `P4 URL Refresh`, refreshed from 1 channel (`Refresh One`) to 2 (`Refresh Updated`, `Refresh Two`), then the fixture server was stopped and a failed refresh left both valid stored rows intact.
+- [x] **Step 7: Mark plan evidence and commit** with `chore: complete P4 IPTV M3U milestone`.
 - [ ] **Step 8: Fresh verification before integration:** run `npm test`, secret scan tracked/staged content, and confirm worktree clean after milestone commit.
 - [ ] **Step 9: Push detached worktree HEAD as `feat/p4-iptv-m3u-library`, open a PR to `main`, wait for `verify` + `dependency-review`, fix actionable failures, merge when green, fast-forward normal local `main`, preserve ignored `.env`, update the plan's integration checkbox, push that final docs commit, and run `npm run verify` on the final pushed `main` checkout.
 
 ## Exit Criteria
 
-- [ ] URL, file, and pasted-text M3U imports work.
-- [ ] Extended M3U metadata and EPG references are parsed/preserved.
-- [ ] Imported IPTV lists/channels persist across reloads in `livetv-iptv`.
-- [ ] Multiple lists remain isolated and deleting a list removes its channels.
-- [ ] URL-list refresh is transactional and failed refresh does not destroy old data.
-- [ ] Search, group filtering, and incremental rendering work.
-- [ ] IPTV channel playback uses the existing UnifiedPlayer.
-- [ ] Playing IPTV channels remains compatible with P3 history/favorites/playlists.
-- [ ] IPTV storage/import failure leaves direct playback usable.
-- [ ] No generic backend proxy, XMLTV rendering, auth/sync, torrent, recording, or download dependency is introduced.
+- [x] URL, file, and pasted-text M3U imports work.
+- [x] Extended M3U metadata and EPG references are parsed/preserved.
+- [x] Imported IPTV lists/channels persist across reloads in `livetv-iptv`.
+- [x] Multiple lists remain isolated and deleting a list removes its channels.
+- [x] URL-list refresh is transactional and failed refresh does not destroy old data.
+- [x] Search, group filtering, and incremental rendering work.
+- [x] IPTV channel playback uses the existing UnifiedPlayer.
+- [x] Playing IPTV channels remains compatible with P3 history/favorites/playlists.
+- [x] IPTV storage/import failure leaves direct playback usable.
+- [x] No generic backend proxy, XMLTV rendering, auth/sync, torrent, recording, or download dependency is introduced.
 - [ ] Full verification, Docker acceptance, browser persistence/playback acceptance, GitHub CI, merge, and final-main verification pass.

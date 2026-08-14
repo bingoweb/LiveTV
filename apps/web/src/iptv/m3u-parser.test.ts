@@ -4,7 +4,8 @@ import { parseM3u } from './m3u-parser'
 
 describe('parseM3u', () => {
   it('parses extended M3U metadata, EPG URLs, and comma-containing titles', () => {
-    const result = parseM3u(`#EXTM3U url-tvg="https://epg.example/a.xml, https://epg.example/b.xml" x-tvg-url=https://epg.example/c.xml
+    const result =
+      parseM3u(`#EXTM3U url-tvg="https://epg.example/a.xml, https://epg.example/b.xml" x-tvg-url=https://epg.example/c.xml
 #EXTINF:-1 tvg-id="news.tr" tvg-name="Haber 1" tvg-logo="https://img.example/logo.png" group-title="Haber",Haber, Canlı
 https://cdn.example/live/index.m3u8?token=abc#edge`)
 
@@ -86,10 +87,12 @@ https://example.com/live.m3u8?token=1
 #EXTINF:-1 tvg-id="different",Third
 https://example.com/live.m3u8?token=1`)
 
-    expect(result.channels.map(({ name, tvgId }) => ({ name, tvgId }))).toEqual([
-      { name: 'First name', tvgId: 'same' },
-      { name: 'Third', tvgId: 'different' },
-    ])
+    expect(result.channels.map(({ name, tvgId }) => ({ name, tvgId }))).toEqual(
+      [
+        { name: 'First name', tvgId: 'same' },
+        { name: 'Third', tvgId: 'different' },
+      ],
+    )
   })
 
   it('uses a deterministic host/path fallback when no usable channel name exists', () => {

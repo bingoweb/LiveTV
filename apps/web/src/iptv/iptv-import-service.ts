@@ -38,7 +38,9 @@ function suggestedNameFromUrl(url: URL) {
   const lastSegment = url.pathname.split('/').filter(Boolean).pop()
   if (!lastSegment) return url.hostname
   try {
-    return stripPlaylistExtension(decodeURIComponent(lastSegment)) || url.hostname
+    return (
+      stripPlaylistExtension(decodeURIComponent(lastSegment)) || url.hostname
+    )
   } catch {
     return stripPlaylistExtension(lastSegment) || url.hostname
   }
@@ -61,7 +63,9 @@ export function importIptvFromText(
   }
 }
 
-export async function importIptvFromFile(file: File): Promise<IptvImportResult> {
+export async function importIptvFromFile(
+  file: File,
+): Promise<IptvImportResult> {
   assertSize(file.size)
   const text = await file.text()
   assertSize(textSize(text))
@@ -109,10 +113,12 @@ export async function importIptvFromUrl(
     return { playlist, suggestedName: suggestedNameFromUrl(url) }
   } catch (error) {
     if (controller.signal.aborted) {
-      throw new Error('IPTV liste isteği zaman aşımına uğradı.')
+      throw new Error('IPTV liste isteği zaman aşımına uğradı.', {
+        cause: error,
+      })
     }
     if (error instanceof Error) throw error
-    throw new Error('IPTV listesi indirilemedi.')
+    throw new Error('IPTV listesi indirilemedi.', { cause: error })
   } finally {
     globalThis.clearTimeout(timeout)
   }

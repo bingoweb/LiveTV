@@ -4,14 +4,14 @@ LiveTV is a browser-first media player project designed as a single interface fo
 
 ## Current status
 
-The repository is in **P3 — Guest Local Library**. The responsive PWA shell and P2 unified playback engine are now connected to a persistent, account-free local library.
+The repository is in **P4 — IPTV / M3U Library**. The responsive PWA shell, P2 unified playback engine, and P3 guest library are now connected to a persistent browser-first IPTV channel library.
 
 The current implementation includes:
 
 - desktop sidebar navigation and large player workspace,
 - tablet split layout with a compact navigation rail,
 - phone-first player layout with bottom navigation and a secondary bottom sheet,
-- route shells for Home, Live TV, YouTube, IPTV, Torrent, Playlists, TV Guide, History, and Settings,
+- route shells for Home, Live TV, YouTube, Torrent, TV Guide, and Settings plus functional IPTV, Playlists, and History workspaces,
 - one unified playback surface for direct HTTP(S) media, HLS, and YouTube,
 - Plyr controls with fullscreen and PiP where the browser/provider exposes them,
 - HLS.js playback with native-HLS fallback and manual quality choices when multiple levels are available,
@@ -36,8 +36,16 @@ The current implementation includes:
 - custom playlist create, rename, delete, add/remove, and explicit up/down reorder operations,
 - functional History and Playlists routes that can send saved sources back into the same unified player,
 - graceful library disablement when IndexedDB is unavailable without disabling playback.
+- extended-M3U parsing for channel name, `tvg-id`, `tvg-name`, `tvg-logo`, `group-title`, `#EXTGRP`, and playlist-level EPG URL metadata,
+- IPTV list import from HTTP(S) URL, local `.m3u`/`.m3u8` file, or pasted M3U text,
+- a dedicated `livetv-iptv` IndexedDB database for multiple persistent IPTV lists and their channels,
+- channel search, group filtering, and incremental 200-row rendering for large lists,
+- explicit refresh for URL-backed IPTV lists with transactional replacement, so a failed refresh preserves the last valid stored list,
+- IPTV channel playback through the same unified player used by direct media, HLS, YouTube, History, and Playlists,
+- IPTV channel title/logo metadata flowing into the existing P3 history/favorites behavior after real playback begins,
+- non-fatal M3U parse warnings surfaced without rejecting otherwise valid playlists.
 
-Torrent streaming, M3U channel-list parsing, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
+Torrent streaming, XMLTV guide rendering, authentication, watch-progress resume, and cross-device sync remain later roadmap phases.
 
 Current workspace boundaries:
 
@@ -138,6 +146,28 @@ The `/playlists` route contains both Favorites and user-created playlists. A pla
 
 P3 does **not** synchronize library data to PostgreSQL or another server, and it does not implement accounts, cloud backup, or cross-device state. Watch-progress/resume timestamps are also intentionally deferred. If IndexedDB is blocked or unavailable, LiveTV keeps media playback functional and disables only local-library persistence features.
 
+## IPTV / M3U library
+
+P4 stores IPTV list metadata and channels in a separate browser IndexedDB database named `livetv-iptv`. Keeping it separate from `livetv-library` lets the IPTV schema evolve without coupling channel-list storage to personal History, Favorites, and Playlist records.
+
+The `/iptv` workspace accepts playlists in three ways:
+
+- an HTTP(S) M3U URL,
+- a local `.m3u` or `.m3u8` file,
+- pasted M3U text.
+
+Each import is limited to **10 MiB**. The parser understands common extended-M3U metadata including `tvg-id`, `tvg-name`, `tvg-logo`, `group-title`, and `#EXTGRP`. Playlist header EPG references from `url-tvg`, `x-tvg-url`, and `tvg-url` are preserved for the later TV Guide phase, but P4 does not download or render XMLTV data.
+
+Only HTTP(S) channel URLs are stored. Query strings and URL fragments are preserved because signed IPTV stream URLs may depend on them. Relative stream URLs can be resolved when the playlist itself was imported from a URL; file and paste imports reject relative stream URLs because they do not have a trustworthy base address. Malformed entries are skipped as non-fatal warnings when the same playlist still contains valid channels.
+
+URL imports are fetched directly by the browser. LiveTV deliberately does **not** expose a generic unauthenticated backend URL-fetch proxy to bypass CORS. If an upstream playlist blocks browser cross-origin access, file or paste import remains available.
+
+Multiple IPTV lists can be stored independently. The active list can be searched by channel name, `tvg-name`, `tvg-id`, group, or stream host, filtered by group, and displayed incrementally in batches of 200 channels. URL-backed lists expose an explicit **Listeyi yenile** action. Refresh parses a complete replacement first and writes it transactionally; a fetch/parse/write failure leaves the previous valid list and channel rows intact.
+
+Choosing **Oynat** on an IPTV channel sends the channel into the existing UnifiedPlayer. `.m3u8` paths explicitly select the HLS engine; other HTTP(S) channel URLs use normal automatic source classification. Once that source reaches real `playing`, the existing P3 library integration can record it in History and preserve its IPTV display name/logo for Favorites and user playlists.
+
+If `livetv-iptv` cannot be opened, the saved IPTV library is disabled but manual direct-media playback remains available.
+
 ## PWA behavior
 
 The normal PWA development entry point is `http://localhost:8080`. Localhost is treated as a secure context by modern browsers, so the service worker can register during local development.
@@ -198,6 +228,6 @@ The software license for LiveTV has **not yet been selected**. This repository b
 
 ## Roadmap boundary
 
-P3 does not implement torrent streaming, M3U channel-list parsing, downloads or recording, torrent archival behavior, seeding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
+P4 does not implement torrent streaming, XMLTV download/guide rendering, downloads or recording, torrent archival behavior, seeding, authentication, server-side personal libraries, cloud synchronization, or watch-progress resume. It also does not provide a generic CORS-bypass URL proxy and does not attempt to bypass YouTube advertising for non-Premium users; Premium behavior is delegated to the signed-in YouTube session when that session is available to the embed.
 
 The guest library is deliberately repository-backed so a later authenticated synchronization phase can consume the same application-level records without making the player depend on raw IndexedDB structure.

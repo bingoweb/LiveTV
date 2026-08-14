@@ -58,13 +58,19 @@ export function App({ initialPath }: AppProps) {
   }
 
   const playLibrarySource = (source: LibrarySource) => {
-    const request = playerRequestForLibrarySource(playerRequestIdRef.current, source)
+    const request = playerRequestForLibrarySource(
+      playerRequestIdRef.current,
+      source,
+    )
     playerRequestIdRef.current = request.id
     setPlayerOpenRequest(request)
   }
 
   const playIptvChannel = (channel: IptvChannel) => {
-    const request = playerRequestForIptvChannel(playerRequestIdRef.current, channel)
+    const request = playerRequestForIptvChannel(
+      playerRequestIdRef.current,
+      channel,
+    )
     playerRequestIdRef.current = request.id
     setPlayerOpenRequest(request)
   }

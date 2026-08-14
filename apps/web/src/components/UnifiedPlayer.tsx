@@ -109,16 +109,15 @@ export function UnifiedPlayer({
       )
       return toLibrarySource(source, {
         title: activeMetadata?.title ?? liveStatus?.title ?? 'YouTube yayını',
-        ...(activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl
+        ...((activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl)
           ? {
               thumbnailUrl:
                 activeMetadata?.thumbnailUrl ?? liveStatus?.thumbnailUrl,
             }
           : {}),
-        ...(activeMetadata?.channelUrl ?? liveStatus?.channel.url
+        ...((activeMetadata?.channelUrl ?? liveStatus?.channel.url)
           ? {
-              channelUrl:
-                activeMetadata?.channelUrl ?? liveStatus?.channel.url,
+              channelUrl: activeMetadata?.channelUrl ?? liveStatus?.channel.url,
             }
           : {}),
       })

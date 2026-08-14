@@ -146,7 +146,7 @@ function SourceContent({ route }: { route: NavigationItem }) {
         </div>
         <div className="source-entry-copy">
           <span className="source-status">
-            {supportsPlayback ? 'P3 oynatma + kütüphane hazır' : 'Arayüz hazır'}
+            {supportsPlayback ? 'P4 oynatma + kütüphane hazır' : 'Arayüz hazır'}
           </span>
           <strong>{content.action}</strong>
           <p>

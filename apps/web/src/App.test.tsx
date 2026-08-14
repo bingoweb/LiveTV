@@ -31,6 +31,7 @@ describe('App', () => {
 
     expect(markup).toContain('IPTV kütüphanesi yükleniyor')
     expect(markup).not.toContain('M3U kanal listeleri P4’te gelecek')
+    expect(markup).toContain('IPTV &amp; M3U library')
     expect(markup).toContain('unified-player')
   })
 
@@ -43,7 +44,8 @@ describe('App', () => {
     expect(markup).toContain('@ankahaberajans')
     expect(markup).toContain('YouTube Premium oturumunu kullan')
     expect(markup).toContain('Premium')
-    expect(markup).toContain('P3 oynatma + kütüphane hazır')
+    expect(markup).toContain('P4 oynatma + kütüphane hazır')
+    expect(markup).not.toContain('P3 oynatma + kütüphane hazır')
     expect(markup).not.toContain('P2 oynatma hazır')
   })
 
@@ -55,7 +57,8 @@ describe('App', () => {
     expect(markup).toContain('Başlangıç davranışı')
     expect(markup).toContain('Uygulama ve PWA')
     expect(markup).toContain('YouTube hesabı ve Premium')
-    expect(markup).toContain('P3’te')
+    expect(markup).toContain('P4’te')
+    expect(markup).not.toContain('P3’te')
     expect(markup).not.toContain('P2’de')
     expect(markup).not.toContain('unified-player')
   })

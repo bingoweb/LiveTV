@@ -220,7 +220,10 @@ class BrowserIptvRepository implements IptvRepository {
     }
 
     return await this.withDatabase(async (database) => {
-      const transaction = database.transaction(['lists', 'channels'], 'readwrite')
+      const transaction = database.transaction(
+        ['lists', 'channels'],
+        'readwrite',
+      )
       const done = transactionDone(transaction)
       try {
         await requestValue(transaction.objectStore('lists').put(list))
@@ -245,16 +248,16 @@ class BrowserIptvRepository implements IptvRepository {
     })
   }
 
-  async replaceList(
-    id: string,
-    input: ImportIptvListInput,
-  ): Promise<IptvList> {
+  async replaceList(id: string, input: ImportIptvListInput): Promise<IptvList> {
     if (input.channels.length === 0) {
       throw new Error('IPTV listesinde kaydedilecek kanal yok.')
     }
 
     return await this.withDatabase(async (database) => {
-      const transaction = database.transaction(['lists', 'channels'], 'readwrite')
+      const transaction = database.transaction(
+        ['lists', 'channels'],
+        'readwrite',
+      )
       const done = transactionDone(transaction)
       try {
         const listStore = transaction.objectStore('lists')
@@ -300,7 +303,9 @@ class BrowserIptvRepository implements IptvRepository {
   async listLists(): Promise<IptvList[]> {
     return await this.withDatabase(async (database) => {
       const transaction = database.transaction('lists', 'readonly')
-      const values = await requestValue(transaction.objectStore('lists').getAll())
+      const values = await requestValue(
+        transaction.objectStore('lists').getAll(),
+      )
       await transactionDone(transaction)
       return values
         .filter(isIptvList)
@@ -319,7 +324,10 @@ class BrowserIptvRepository implements IptvRepository {
 
   async deleteList(id: string): Promise<void> {
     await this.withDatabase(async (database) => {
-      const transaction = database.transaction(['lists', 'channels'], 'readwrite')
+      const transaction = database.transaction(
+        ['lists', 'channels'],
+        'readwrite',
+      )
       const done = transactionDone(transaction)
       await deleteChannelsInTransaction(transaction, id)
       await requestValue(transaction.objectStore('lists').delete(id))

@@ -19,7 +19,10 @@ function list(overrides: Partial<IptvList> = {}): IptvList {
   }
 }
 
-function channel(index: number, overrides: Partial<IptvChannel> = {}): IptvChannel {
+function channel(
+  index: number,
+  overrides: Partial<IptvChannel> = {},
+): IptvChannel {
   return {
     id: `channel-${index}`,
     listId: 'list-1',
@@ -54,7 +57,12 @@ describe('IptvLibraryView', () => {
   it('renders storage loading and unavailable states without hiding the route purpose', () => {
     const loading = renderToStaticMarkup(
       <IptvLibraryView
-        iptv={context({ status: 'loading', lists: [], channels: [], activeListId: null })}
+        iptv={context({
+          status: 'loading',
+          lists: [],
+          channels: [],
+          activeListId: null,
+        })}
         query=""
         group={null}
         visibleLimit={200}
@@ -70,7 +78,12 @@ describe('IptvLibraryView', () => {
     )
     const unavailable = renderToStaticMarkup(
       <IptvLibraryView
-        iptv={context({ status: 'unavailable', lists: [], channels: [], activeListId: null })}
+        iptv={context({
+          status: 'unavailable',
+          lists: [],
+          channels: [],
+          activeListId: null,
+        })}
         query=""
         group={null}
         visibleLimit={200}
@@ -109,7 +122,9 @@ describe('IptvLibraryView', () => {
     )
     const fileMarkup = renderToStaticMarkup(
       <IptvLibraryView
-        iptv={context({ lists: [list({ sourceType: 'file', sourceUrl: undefined })] })}
+        iptv={context({
+          lists: [list({ sourceType: 'file', sourceUrl: undefined })],
+        })}
         query=""
         group={null}
         visibleLimit={200}
@@ -152,5 +167,27 @@ describe('IptvLibraryView', () => {
     expect(markup).toContain('Daha fazla göster')
     expect(markup).toContain('Haber')
     expect(markup).toContain('Spor')
+  })
+
+  it('renders the latest non-fatal import warning notice', () => {
+    const markup = renderToStaticMarkup(
+      <IptvLibraryView
+        iptv={context({ noticeMessage: '2 geçersiz M3U kaydı atlandı.' })}
+        query=""
+        group={null}
+        visibleLimit={200}
+        importName=""
+        importUrl=""
+        pasteText=""
+        actionMessage="IPTV metni içe aktarıldı."
+        onQueryChange={noOp}
+        onGroupChange={noOp}
+        onShowMore={noOp}
+        onSelectList={noOp}
+        onPlayChannel={noOp}
+      />,
+    )
+
+    expect(markup).toContain('2 geçersiz M3U kaydı atlandı.')
   })
 })
