@@ -209,12 +209,12 @@ export function importIptvFromText(
 ): IptvImportResult
 ```
 
-- [ ] **Step 1: Write RED tests** for successful URL import, non-2xx response, abort/timeout mapping, URL protocol rejection, `Content-Length` over 10 MiB, actual response body over 10 MiB, file size over 10 MiB, suggested-name generation, valid channels with warnings, and zero-valid-channel rejection.
-- [ ] **Step 2: Run focused tests** and confirm RED.
-- [ ] **Step 3: Implement bounded URL fetch** using `AbortController`, HTTP(S)-only input validation, response-size checks, and `parseM3u(text, { baseUrl: url })`.
-- [ ] **Step 4: Implement file/paste paths**. File uses `file.text()` and no base URL; paste uses the supplied/default name and no base URL. Both reject payloads above 10 MiB and zero-valid-channel results.
-- [ ] **Step 5: Run import-service + parser tests and web typecheck**; confirm PASS.
-- [ ] **Step 6: Commit** with `feat: add IPTV import service`.
+- [x] **Step 1: Write RED tests** for successful URL import, non-2xx response, abort/timeout mapping, URL protocol rejection, `Content-Length` over 10 MiB, actual response body over 10 MiB, file size over 10 MiB, suggested-name generation, valid channels with warnings, and zero-valid-channel rejection.
+- [x] **Step 2: Run focused tests** and confirm RED.
+- [x] **Step 3: Implement bounded URL fetch** using `AbortController`, HTTP(S)-only input validation, response-size checks, and `parseM3u(text, { baseUrl: url })`.
+- [x] **Step 4: Implement file/paste paths**. File uses `file.text()` and no base URL; paste uses the supplied/default name and no base URL. Both reject payloads above 10 MiB and zero-valid-channel results.
+- [x] **Step 5: Run import-service + parser tests and web typecheck**; confirm PASS. Evidence: 15/15 focused tests and web typecheck exit 0.
+- [x] **Step 6: Commit** with `feat: add IPTV import service`.
 
 ---
 
